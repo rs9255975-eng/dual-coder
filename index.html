@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="description" content="IdeaVault – Submit startup ideas, explore the dashboard, analyze market potential."/>
+  <title>IdeaVault – Where Startup Ideas Live</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js" defer></script>
+  <style>
+    /* ═══════════════════════════════════════════
+       THEME VARIABLES — DARK (default)
+    ═══════════════════════════════════════════ */
+    :root {
+      --ink:        #0a0a0f;
+      --ink-soft:   #14141e;
+      --surface:    #1a1a28;
+      --surface2:   #22223a;
+      --border:     rgba(255,255,255,.08);
+      --border2:    rgba(255,255,255,.16);
+      --text:       #e8e8f0;
+      --muted:      #7a7a9a;
+      --white:      #ffffff;
+      --card-bg:    #1a1a28;
+      --input-bg:   #22223a;
+      --neon:       #00f5a0;
+      --neon-dim:   rgba(0,245,160,.12);
+      --neon-glow:  0 0 24px rgba(0,245,160,.35);
+      --orange:     #ff6b35;
+      --orange-dim: rgba(255,107,53,.12);
+      --blue:       #5b8dee;
+      --blue-dim:   rgba(91,141,238,.12);
+      --pink:       #f050c8;
+      --pink-dim:   rgba(240,80,200,.12);
+      --amber:      #fbbf24;
+      --amber-dim:  rgba(251,191,36,.12);
+      --radius:     14px;
+      --radius-sm:  8px;
+      --t:          .25s cubic-bezier(.4,0,.2,1);
+      --font-d:     'Bebas Neue', sans-serif;
+      --font-b:     'Outfit', sans-serif;
+      --shadow:     0 8px 40px rgba(0,0,0,.5);
+      --nav-bg:     rgba(10,10,15,.92);
+    }
+
+    /* ═══════════════════════════════════════════
+       LIGHT THEME OVERRIDES
+    ═══════════════════════════════════════════ */
+    [data-theme="light"] {
+      --ink:        #f0f0f5;
+      --ink-soft:   #e4e4ee;
+      --surface:    #ffffff;
+      --surface2:   #f5f5fa;
+      --border:     rgba(0,0,0,.08);
+      --border2:    rgba(0,0,0,.14);
+      --text:       #1a1a2e;
+      --muted:      #6b6b8a;
+      --white:      #1a1a2e;
+      --card-bg:    #ffffff;
+      --input-bg:   #f5f5fa;
+      --neon:       #008f5a;
+      --neon-dim:   rgba(0,143,90,.1);
+      --neon-glow:  0 0 20px rgba(0,143,90,.25);
+      --shadow:     0 4px 24px rgba(0,0,0,.1);
+      --nav-bg:     rgba(240,240,245,.92);
+    }
+
+    /* ═══════════════════════════════════════════
+       RESET
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body { font-family: var(--font-b); background: var(--ink); color: var(--text); overflow-x: hidden; line-height: 1.7; transition: background .3s, color .3s; }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    button { cursor: pointer; font-family: var(--font-b); border: none; background: none; }
+    input, textarea, select { font-family: var(--font-b); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--ink); }
+    ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+    /* ═══════════════════════════════════════════
+       READING PROGRESS BAR
+    ═══════════════════════════════════════════ */
+    #readingBar {
+      position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+      background: linear-gradient(90deg, var(--neon), var(--orange));
+      z-index: 2000; transition: width .1s linear;
+    }
+
+    /* ═══════════════════════════════════════════
+       TOAST NOTIFICATION
+    ═══════════════════════════════════════════ */
+    #toastContainer {
+      position: fixed; bottom: 80px; right: 24px; z-index: 1500;
+      display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+    }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 12px 18px;
+      font-size: .88rem; color: var(--text); box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 10px;
+      animation: toastIn .3s ease both;
+      pointer-events: auto; max-width: 300px;
+    }
+    .toast.success { border-left: 3px solid var(--neon); }
+    .toast.error   { border-left: 3px solid var(--orange); }
+    .toast.info    { border-left: 3px solid var(--blue); }
+    .toast i { font-size: 1.1rem; flex-shrink: 0; }
+    .toast-out { animation: toastOut .3s ease forwards; }
+    @keyframes toastIn  { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:none} }
+    @keyframes toastOut { from{opacity:1;transform:none} to{opacity:0;transform:translateX(40px)} }
+
+    /* ═══════════════════════════════════════════
+       UTILITIES
+    ═══════════════════════════════════════════ */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .55s ease, transform .55s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .7rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--neon); background: var(--neon-dim);
+      border: 1px solid rgba(0,245,160,.2); padding: 5px 12px;
+      border-radius: 100px; margin-bottom: 14px;
+    }
+    [data-theme="light"] .tag { border-color: rgba(0,143,90,.2); }
+    .section-title { font-family: var(--font-d); font-size: clamp(2.2rem,4vw,3.5rem); letter-spacing: .04em; color: var(--white); line-height: 1.05; }
+    .section-sub { font-size: 1rem; color: var(--muted); max-width: 520px; margin-top: 10px; font-weight: 300; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; border-radius: 100px; font-size: .92rem; font-weight: 600; transition: var(--t); }
+    .btn-neon { background: var(--neon); color: var(--ink); box-shadow: var(--neon-glow); }
+    .btn-neon:hover { filter: brightness(1.1); transform: translateY(-2px); }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border2); }
+    .btn-ghost:hover { border-color: var(--neon); color: var(--neon); transform: translateY(-2px); }
+
+    /* ═══════════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════════ */
+    #navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 18px 0; transition: var(--t); }
+    #navbar.scrolled { background: var(--nav-bg); backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .nav-logo { font-family: var(--font-d); font-size: 1.7rem; letter-spacing: .06em; color: var(--white); display: flex; align-items: center; gap: 10px; }
+    .nav-logo-dot { width: 10px; height: 10px; background: var(--neon); border-radius: 50%; box-shadow: var(--neon-glow); }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: .88rem; font-weight: 500; color: var(--muted); transition: color var(--t); }
+    .nav-links a:hover { color: var(--text); }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+
+    /* Theme toggle */
+    .theme-toggle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border2);
+      display: grid; place-items: center; transition: var(--t); color: var(--muted);
+    }
+    .theme-toggle:hover { border-color: var(--neon); color: var(--neon); }
+    .theme-toggle i { font-size: 1rem; }
+
+    /* Language selector */
+    .lang-select {
+      background: var(--surface); border: 1px solid var(--border2);
+      color: var(--muted); border-radius: 100px; padding: 6px 12px;
+      font-size: .78rem; font-weight: 600; cursor: pointer;
+      transition: var(--t); outline: none;
+    }
+    .lang-select:hover, .lang-select:focus { border-color: var(--neon); color: var(--neon); }
+    .lang-select option { background: var(--surface); color: var(--text); }
+
+    /* Font size controls */
+    .font-ctrl { display: flex; align-items: center; gap: 2px; }
+    .font-ctrl button {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--muted); font-size: .8rem; font-weight: 700;
+      transition: var(--t); display: grid; place-items: center;
+    }
+    .font-ctrl button:hover { border-color: var(--neon); color: var(--neon); }
+
+    .nav-hamburger { display: none; flex-direction: column; gap: 5px; padding: 4px; }
+    .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: var(--t); }
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu { display: none; position: fixed; inset: 0; z-index: 999; background: var(--ink); flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: var(--font-d); font-size: 2.2rem; letter-spacing: .06em; color: var(--muted); transition: color var(--t); }
+    .mobile-menu a:hover { color: var(--neon); }
+    .mobile-close { position: absolute; top: 24px; right: 24px; font-size: 1.8rem; color: var(--muted); }
+    .mobile-bottom { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+
+    /* ═══════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════ */
+    #hero { min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden; padding: 120px 0 80px; }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(0,245,160,.07) 0%, transparent 70%),
+                  radial-gradient(ellipse 60% 50% at 10% 80%, rgba(255,107,53,.06) 0%, transparent 60%), var(--ink);
+    }
+    [data-theme="light"] .hero-bg {
+      background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(0,143,90,.06) 0%, transparent 70%),
+                  radial-gradient(ellipse 60% 50% at 10% 80%, rgba(255,107,53,.04) 0%, transparent 60%), var(--ink);
+    }
+    .hero-bg::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 60px 60px; }
+    .hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .hero-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); box-shadow: var(--neon-glow); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+    .hero-eyebrow span { font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--neon); }
+    .hero-title { font-family: var(--font-d); font-size: clamp(3rem,6vw,5.5rem); letter-spacing: .04em; line-height: 1; color: var(--white); margin-bottom: 22px; }
+    .hero-title .line2 { color: var(--neon); }
+    .hero-desc { font-size: 1.05rem; color: var(--muted); max-width: 440px; margin-bottom: 36px; font-weight: 300; }
+    .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-stats { display: flex; gap: 40px; margin-top: 52px; }
+    .hero-stat-num { font-family: var(--font-d); font-size: 2.2rem; letter-spacing: .04em; color: var(--white); }
+    .hero-stat-label { font-size: .78rem; color: var(--muted); margin-top: -2px; }
+    .hero-visual { display: flex; flex-direction: column; gap: 14px; }
+    .idea-ticker-label { font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .idea-ticker { display: flex; flex-direction: column; gap: 10px; }
+    .ticker-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; display: flex; align-items: center; gap: 14px; animation: slideIn .5s ease both; transition: border-color var(--t); }
+    .ticker-card:hover { border-color: var(--neon); }
+    @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+    .ticker-icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 1.2rem; flex-shrink: 0; }
+    .ticker-card-name { font-size: .88rem; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ticker-card-cat { font-size: .73rem; color: var(--muted); margin-top: 1px; }
+    .ticker-badge { font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 100px; flex-shrink: 0; }
+
+    /* ═══════════════════════════════════════════
+       ABOUT
+    ═══════════════════════════════════════════ */
+    #about { padding: 100px 0; background: var(--ink-soft); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+    .about-visual { position: relative; height: 420px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .about-visual-glow { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(0,245,160,.12), transparent 70%); animation: roam 6s ease-in-out infinite alternate; }
+    [data-theme="light"] .about-visual-glow { background: radial-gradient(circle, rgba(0,143,90,.1), transparent 70%); }
+    @keyframes roam { from{transform:translate(-40px,-30px)} to{transform:translate(40px,30px)} }
+    .about-visual-inner { position: relative; z-index: 1; text-align: center; }
+    .about-big-num { font-family: var(--font-d); font-size: 6rem; color: rgba(128,128,160,.1); line-height: 1; }
+    .about-grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; }
+    .about-stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; transition: var(--t); }
+    .about-stat-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+    .about-stat-card i { font-size: 1.3rem; margin-bottom: 8px; }
+    .about-stat-card strong { display: block; font-size: 1.2rem; font-weight: 700; color: var(--white); }
+    .about-stat-card span { font-size: .8rem; color: var(--muted); }
+
+    /* ═══════════════════════════════════════════
+       FEATURES
+    ═══════════════════════════════════════════ */
+    #features { padding: 100px 0; }
+    .features-header { text-align: center; margin-bottom: 56px; }
+    .features-header .section-sub { margin: 10px auto 0; }
+    .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .feature-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px 26px; transition: var(--t); position: relative; overflow: hidden; }
+    .feature-card:hover { border-color: var(--border2); transform: translateY(-5px); box-shadow: var(--shadow); }
+    .feature-icon { width: 50px; height: 50px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 18px; border: 1px solid var(--border2); }
+    .feature-icon i { font-size: 1.4rem; }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+    .feature-card p { font-size: .88rem; color: var(--muted); line-height: 1.65; }
+
+    /* ═══════════════════════════════════════════
+       HOW IT WORKS
+    ═══════════════════════════════════════════ */
+    #how { padding: 100px 0; background: var(--ink-soft); }
+    .how-header { text-align: center; margin-bottom: 64px; }
+    .how-header .section-sub { margin: 10px auto 0; }
+    .how-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; position: relative; }
+    .how-steps::before { content: ''; position: absolute; top: 36px; left: 12%; right: 12%; height: 1px; background: linear-gradient(90deg, transparent, var(--neon), var(--orange), var(--neon), transparent); opacity: .3; }
+    .how-step { text-align: center; position: relative; z-index: 1; }
+    .how-step-circle { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 20px; background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; transition: var(--t); position: relative; }
+    .how-step-num { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; background: var(--neon); color: var(--ink); border-radius: 50%; font-size: .68rem; font-weight: 800; display: grid; place-items: center; }
+    .how-step:hover .how-step-circle { border-color: var(--neon); background: var(--neon-dim); box-shadow: var(--neon-glow); }
+    .how-step-circle i { font-size: 1.6rem; color: var(--muted); transition: color var(--t); }
+    .how-step:hover .how-step-circle i { color: var(--neon); }
+    .how-step h3 { font-size: .95rem; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+    .how-step p { font-size: .84rem; color: var(--muted); line-height: 1.6; }
+
+    /* ═══════════════════════════════════════════
+       SUBMIT FORM
+    ═══════════════════════════════════════════ */
+    #submit { padding: 100px 0; }
+    .submit-inner { display: grid; grid-template-columns: 1fr 1.3fr; gap: 72px; align-items: start; }
+    .submit-perks { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
+    .submit-perk { display: flex; align-items: center; gap: 12px; }
+    .submit-perk i { font-size: 1rem; color: var(--neon); }
+    .submit-perk span { font-size: .9rem; color: var(--muted); }
+    .idea-form { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; }
+    .idea-form h3 { font-size: 1.15rem; font-weight: 700; color: var(--white); margin-bottom: 24px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .fg { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .fg label { font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .fg input, .fg textarea, .fg select { background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 15px; font-size: .92rem; color: var(--text); outline: none; transition: border-color var(--t); }
+    .fg input::placeholder, .fg textarea::placeholder { color: var(--muted); opacity: .6; }
+    .fg input:focus, .fg textarea:focus, .fg select:focus { border-color: var(--neon); }
+    .fg input.err, .fg textarea.err, .fg select.err { border-color: var(--orange); }
+    .fg-error { font-size: .75rem; color: var(--orange); display: none; margin-top: 2px; }
+    .fg-error.show { display: block; }
+    .fg select option { background: var(--card-bg); color: var(--text); }
+    .fg textarea { resize: vertical; min-height: 90px; }
+
+    /* Char counter */
+    .char-counter { font-size: .72rem; color: var(--muted); text-align: right; margin-top: -10px; margin-bottom: 6px; }
+    .char-counter.warn { color: var(--orange); }
+
+    .slider-wrap { display: flex; align-items: center; gap: 12px; }
+    .slider-wrap input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; background: linear-gradient(to right, var(--neon) 0%, var(--surface2) 0%); border: none; border-radius: 2px; padding: 0; outline: none; }
+    .slider-wrap input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--neon); cursor: pointer; box-shadow: var(--neon-glow); }
+    .slider-val { font-size: .85rem; font-weight: 700; color: var(--neon); width: 28px; text-align: right; }
+    .tag-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-pill { padding: 5px 12px; border-radius: 100px; font-size: .78rem; font-weight: 600; border: 1px solid var(--border2); color: var(--muted); cursor: pointer; transition: var(--t); user-select: none; }
+    .tag-pill:hover { border-color: var(--neon); color: var(--neon); }
+    .tag-pill.selected { background: var(--neon); border-color: var(--neon); color: var(--ink); }
+    .form-submit-btn { width: 100%; padding: 14px; border-radius: 100px; background: var(--neon); color: var(--ink); font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; transition: var(--t); box-shadow: var(--neon-glow); margin-top: 8px; }
+    .form-submit-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+    .form-submit-btn:disabled { opacity: .5; pointer-events: none; }
+
+    /* ═══════════════════════════════════════════
+       DASHBOARD
+    ═══════════════════════════════════════════ */
+    #dashboard { padding: 100px 0; background: var(--ink-soft); }
+    .dash-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 20px; }
+    .dash-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    .dash-search { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 14px; font-size: .88rem; color: var(--text); outline: none; width: 220px; transition: border-color var(--t); }
+    .dash-search::placeholder { color: var(--muted); }
+    .dash-search:focus { border-color: var(--neon); }
+    .dash-filter { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 14px; font-size: .85rem; color: var(--muted); cursor: pointer; transition: var(--t); }
+    .dash-filter.active, .dash-filter:hover { border-color: var(--neon); color: var(--neon); }
+    .dash-sort { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 14px; font-size: .85rem; color: var(--muted); cursor: pointer; outline: none; transition: var(--t); }
+    .dash-sort:focus, .dash-sort:hover { border-color: var(--neon); color: var(--neon); }
+    .dash-sort option { background: var(--surface); color: var(--text); }
+    .dash-export-btn { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 9px 14px; font-size: .85rem; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: var(--t); }
+    .dash-export-btn:hover { border-color: var(--neon); color: var(--neon); }
+    .dash-stats-row { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+    .dash-stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .dash-stat-pill strong { color: var(--text); }
+
+    .ideas-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .idea-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 22px; transition: var(--t); position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 14px; animation: cardPop .4s ease both; }
+    @keyframes cardPop { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:none} }
+    .idea-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; transform: scaleX(0); transform-origin: left; transition: transform var(--t); }
+    .idea-card:hover { border-color: var(--border2); box-shadow: var(--shadow); transform: translateY(-4px); }
+    .idea-card:hover::before { transform: scaleX(1); }
+    .idea-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .idea-card-icon { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font-size: 1.3rem; flex-shrink: 0; }
+    .idea-card-cat { font-size: .68rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; }
+    .idea-card-name { font-size: 1.05rem; font-weight: 700; color: var(--white); line-height: 1.3; }
+    .idea-card-founder { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+    .idea-card-desc { font-size: .85rem; color: var(--muted); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .idea-card-meters { display: flex; flex-direction: column; gap: 8px; }
+    .meter-row { display: flex; align-items: center; gap: 10px; }
+    .meter-label { font-size: .75rem; color: var(--muted); width: 80px; flex-shrink: 0; }
+    .meter-bar { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .meter-fill { height: 100%; border-radius: 2px; transition: width .8s ease; }
+    .meter-val { font-size: .75rem; font-weight: 700; width: 50px; text-align: right; flex-shrink: 0; }
+    .idea-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+    .idea-card-date { font-size: .73rem; color: var(--muted); }
+    .idea-actions { display: flex; gap: 6px; align-items: center; }
+    .idea-like-btn { display: flex; align-items: center; gap: 5px; font-size: .78rem; color: var(--muted); padding: 4px 10px; border: 1px solid var(--border); border-radius: 100px; transition: var(--t); }
+    .idea-like-btn:hover, .idea-like-btn.liked { border-color: var(--pink); color: var(--pink); }
+    .idea-like-btn i { font-size: .9rem; }
+    .idea-detail-btn { width: 28px; height: 28px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: grid; place-items: center; transition: var(--t); color: var(--muted); font-size: .85rem; }
+    .idea-detail-btn:hover { border-color: var(--neon); color: var(--neon); }
+    .no-ideas { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--muted); font-size: .95rem; }
+    .no-ideas i { font-size: 3rem; display: block; margin-bottom: 12px; color: var(--border2); }
+
+    /* ═══════════════════════════════════════════
+       IDEA DETAIL MODAL
+    ═══════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1200;
+      background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
+      display: none; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card-bg); border: 1px solid var(--border2);
+      border-radius: 20px; padding: 36px; max-width: 540px; width: 100%;
+      position: relative; animation: modalIn .3s ease both;
+      max-height: 90vh; overflow-y: auto;
+    }
+    @keyframes modalIn { from{opacity:0;transform:scale(.95) translateY(20px)} to{opacity:1;transform:none} }
+    .modal-close { position: absolute; top: 18px; right: 18px; width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: grid; place-items: center; color: var(--muted); transition: var(--t); font-size: 1rem; }
+    .modal-close:hover { border-color: var(--neon); color: var(--neon); }
+    .modal-cat { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 4px 12px; border-radius: 100px; margin-bottom: 14px; display: inline-block; }
+    .modal-title { font-family: var(--font-d); font-size: 2rem; letter-spacing: .04em; color: var(--white); margin-bottom: 6px; }
+    .modal-founder { font-size: .88rem; color: var(--muted); margin-bottom: 20px; }
+    .modal-desc { font-size: .95rem; color: var(--text); line-height: 1.7; margin-bottom: 24px; }
+    .modal-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+    .modal-metric { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+    .modal-metric-val { font-family: var(--font-d); font-size: 2rem; color: var(--white); }
+    .modal-metric-label { font-size: .75rem; color: var(--muted); }
+    .modal-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .modal-tag { font-size: .78rem; padding: 4px 12px; border-radius: 100px; background: var(--neon-dim); color: var(--neon); border: 1px solid rgba(0,245,160,.2); }
+
+    /* ═══════════════════════════════════════════
+       TESTIMONIALS
+    ═══════════════════════════════════════════ */
+    #testimonials { padding: 100px 0; }
+    .testimonials-header { text-align: center; margin-bottom: 56px; }
+    .testimonials-header .section-sub { margin: 10px auto 0; }
+    .testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .testi-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; transition: var(--t); }
+    .testi-card:hover { border-color: var(--border2); transform: translateY(-4px); }
+    .testi-quote { font-size: 3rem; font-family: var(--font-d); color: var(--neon); line-height: .8; margin-bottom: 12px; opacity: .5; }
+    .testi-text { font-size: .9rem; color: var(--muted); line-height: 1.7; margin-bottom: 20px; font-weight: 300; }
+    .testi-stars { display: flex; gap: 3px; margin-bottom: 16px; }
+    .testi-stars i { color: var(--amber); font-size: .9rem; }
+    .testi-author { display: flex; align-items: center; gap: 12px; }
+    .testi-avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; }
+    .testi-author strong { display: block; font-size: .88rem; color: var(--white); }
+    .testi-author span { font-size: .76rem; color: var(--muted); }
+
+    /* ═══════════════════════════════════════════
+       FAQ
+    ═══════════════════════════════════════════ */
+    #faq { padding: 100px 0; background: var(--ink-soft); }
+    .faq-inner { display: grid; grid-template-columns: 1fr 1.6fr; gap: 72px; align-items: start; }
+    .faq-list { display: flex; flex-direction: column; gap: 10px; }
+    .faq-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; transition: var(--t); }
+    .faq-item.open { border-color: rgba(0,245,160,.3); }
+    .faq-q { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; font-size: .93rem; font-weight: 600; color: var(--text); text-align: left; gap: 12px; transition: color var(--t); }
+    .faq-q:hover { color: var(--white); }
+    .faq-q i { font-size: 1rem; color: var(--neon); flex-shrink: 0; transition: transform var(--t); }
+    .faq-item.open .faq-q i { transform: rotate(45deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .3s; padding: 0 20px; font-size: .88rem; color: var(--muted); line-height: 1.7; }
+    .faq-item.open .faq-a { max-height: 200px; padding: 0 20px 16px; }
+
+    /* ═══════════════════════════════════════════
+       CONTACT
+    ═══════════════════════════════════════════ */
+    #contact { padding: 100px 0; }
+    .contact-inner { display: grid; grid-template-columns: 1fr 1.4fr; gap: 72px; }
+    .contact-form-wrap { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 36px 32px; }
+    .contact-form-wrap h3 { font-size: 1.1rem; font-weight: 700; color: var(--white); margin-bottom: 24px; }
+    .contact-details { display: flex; flex-direction: column; gap: 20px; margin-top: 32px; }
+    .contact-item { display: flex; align-items: center; gap: 14px; }
+    .contact-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--neon-dim); border: 1px solid rgba(0,245,160,.2); display: grid; place-items: center; }
+    .contact-icon i { color: var(--neon); font-size: 1rem; }
+    .contact-item strong { display: block; font-size: .78rem; color: var(--muted); font-weight: 400; }
+    .contact-item span { font-size: .92rem; color: var(--text); }
+    .contact-submit { width: 100%; padding: 13px; border-radius: 100px; background: var(--neon); color: var(--ink); font-size: .95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--t); box-shadow: var(--neon-glow); }
+    .contact-submit:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+    /* ═══════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════ */
+    #footer { background: var(--ink); border-top: 1px solid var(--border); padding: 56px 0 28px; }
+    .footer-top { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: 48px; padding-bottom: 40px; border-bottom: 1px solid var(--border); }
+    .footer-about p { font-size: .88rem; color: var(--muted); margin-top: 12px; max-width: 240px; line-height: 1.7; }
+    .footer-socials { display: flex; gap: 10px; margin-top: 20px; }
+    .footer-social { width: 34px; height: 34px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: grid; place-items: center; transition: var(--t); color: var(--muted); }
+    .footer-social:hover { background: var(--neon); border-color: var(--neon); color: var(--ink); }
+    .footer-col h4 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--white); margin-bottom: 16px; }
+    .footer-col ul { display: flex; flex-direction: column; gap: 9px; }
+    .footer-col a { font-size: .86rem; color: var(--muted); transition: color var(--t); }
+    .footer-col a:hover { color: var(--neon); }
+    .footer-bottom { padding-top: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .footer-bottom p { font-size: .8rem; color: var(--muted); }
+    .footer-bottom-links { display: flex; gap: 18px; }
+    .footer-bottom-links a { font-size: .8rem; color: var(--muted); transition: color var(--t); }
+    .footer-bottom-links a:hover { color: var(--text); }
+
+    /* Scroll to top */
+    #scrollTop { position: fixed; bottom: 26px; right: 26px; z-index: 900; width: 42px; height: 42px; border-radius: 50%; background: var(--neon); color: var(--ink); display: grid; place-items: center; font-size: 1rem; box-shadow: var(--neon-glow); opacity: 0; pointer-events: none; transition: var(--t); }
+    #scrollTop.show { opacity: 1; pointer-events: auto; }
+    #scrollTop:hover { transform: translateY(-3px); }
+
+    /* ═══════════════════════════════════════════
+       KEYBOARD SHORTCUT BADGE
+    ═══════════════════════════════════════════ */
+    .kbd { display: inline-flex; align-items: center; gap: 3px; font-size: .7rem; color: var(--muted); background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; padding: 1px 5px; font-family: monospace; }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .features-grid, .ideas-grid, .testi-grid { grid-template-columns: repeat(2,1fr); }
+      .how-steps { grid-template-columns: repeat(2,1fr); gap: 32px; }
+      .how-steps::before { display: none; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .nav-links, .nav-right { display: none; }
+      .nav-hamburger { display: flex; }
+      .hero-inner, .about-grid, .submit-inner, .contact-inner, .faq-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero-visual { display: none; }
+      .features-grid, .testi-grid { grid-template-columns: 1fr; }
+      .how-steps { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; gap: 28px; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .dash-header { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 480px) {
+      .ideas-grid { grid-template-columns: 1fr; }
+      .hero-ctas { flex-direction: column; }
+      .modal-metrics { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- READING PROGRESS BAR -->
+<div id="readingBar" aria-hidden="true"></div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer" aria-live="polite"></div>
+
+<!-- IDEA DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modalBox">
+    <button class="modal-close" id="modalClose" aria-label="Close"><i class="ph-bold ph-x"></i></button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav id="navbar" aria-label="Main navigation">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" aria-label="IdeaVault">
+        <div class="nav-logo-dot" aria-hidden="true"></div>IdeaVault
+      </a>
+      <ul class="nav-links" role="list">
+        <li><a href="#about" data-i18n="nav_about">About</a></li>
+        <li><a href="#features" data-i18n="nav_features">Features</a></li>
+        <li><a href="#dashboard" data-i18n="nav_dashboard">Dashboard</a></li>
+        <li><a href="#faq" data-i18n="nav_faq">FAQ</a></li>
+      </ul>
+      <div class="nav-right">
+        <!-- Language Selector -->
+        <select class="lang-select" id="langSelect" aria-label="Select language">
+          <option value="en">🌐 EN</option>
+          <option value="hi">🇮🇳 HI</option>
+          <option value="kn">🇮🇳 KN</option>
+          <option value="ta">🇮🇳 TA</option>
+          <option value="fr">🇫🇷 FR</option>
+          <option value="es">🇪🇸 ES</option>
+        </select>
+        <!-- Font Size Controls -->
+        <div class="font-ctrl" aria-label="Font size controls">
+          <button id="fontDec" title="Decrease font size" aria-label="Decrease font size">A-</button>
+          <button id="fontInc" title="Increase font size" aria-label="Increase font size">A+</button>
+        </div>
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode">
+          <i class="ph-bold ph-sun" id="themeIcon"></i>
+        </button>
+        <a href="#submit" class="btn btn-neon" data-i18n="nav_submit"><i class="ph-bold ph-pencil-simple-line" aria-hidden="true"></i> Submit Idea</a>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu"><i class="ph-bold ph-x"></i></button>
+  <a href="#about"     class="mm-link" data-i18n="nav_about">About</a>
+  <a href="#features"  class="mm-link" data-i18n="nav_features">Features</a>
+  <a href="#dashboard" class="mm-link" data-i18n="nav_dashboard">Dashboard</a>
+  <a href="#submit"    class="mm-link" data-i18n="nav_submit">Submit Idea</a>
+  <a href="#faq"       class="mm-link" data-i18n="nav_faq">FAQ</a>
+  <a href="#contact"   class="mm-link">Contact</a>
+  <div class="mobile-bottom">
+    <select class="lang-select" id="langSelectMobile" aria-label="Select language">
+      <option value="en">🌐 EN</option>
+      <option value="hi">🇮🇳 HI</option>
+      <option value="kn">🇮🇳 KN</option>
+      <option value="ta">🇮🇳 TA</option>
+      <option value="fr">🇫🇷 FR</option>
+      <option value="es">🇪🇸 ES</option>
+    </select>
+    <button class="theme-toggle" id="themeToggleMobile" aria-label="Toggle theme">
+      <i class="ph-bold ph-sun"></i>
+    </button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="hero" aria-label="Hero">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-eyebrow">
+          <div class="hero-pulse" aria-hidden="true"></div>
+          <span data-i18n="hero_live">Live Idea Feed Active</span>
+        </div>
+        <h1 class="hero-title" data-i18n="hero_title">YOUR STARTUP<br><span class="line2">IDEA LIVES HERE</span></h1>
+        <p class="hero-desc" data-i18n="hero_desc">Submit, explore, and compare startup ideas from founders worldwide. Instantly see market potential, build difficulty, and trending categories.</p>
+        <div class="hero-ctas">
+          <a href="#submit" class="btn btn-neon"><i class="ph-bold ph-pencil-simple-line" aria-hidden="true"></i> <span data-i18n="hero_cta1">Submit Your Idea</span></a>
+          <a href="#dashboard" class="btn btn-ghost"><i class="ph-bold ph-squares-four" aria-hidden="true"></i> <span data-i18n="hero_cta2">Explore Dashboard</span></a>
+        </div>
+        <div class="hero-stats" role="list">
+          <div class="hero-stat" role="listitem">
+            <div class="hero-stat-num" id="heroCount">0</div>
+            <div class="hero-stat-label" data-i18n="stat_ideas">Ideas Submitted</div>
+          </div>
+          <div class="hero-stat" role="listitem">
+            <div class="hero-stat-num">12</div>
+            <div class="hero-stat-label" data-i18n="stat_cats">Categories</div>
+          </div>
+          <div class="hero-stat" role="listitem">
+            <div class="hero-stat-num">94%</div>
+            <div class="hero-stat-label" data-i18n="stat_approval">Founder Approval</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <p class="idea-ticker-label">🔴 <span data-i18n="hero_live">Live submissions</span></p>
+        <div class="idea-ticker" id="heroTicker"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" aria-labelledby="about-h">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual reveal" aria-hidden="true">
+        <div class="about-visual-glow"></div>
+        <div class="about-visual-inner">
+          <div class="about-big-num">∞</div>
+          <p style="color:var(--muted);font-size:.85rem;margin-top:8px" data-i18n="about_sub">Unlimited possibilities</p>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="tag"><i class="ph-fill ph-info" aria-hidden="true"></i> <span data-i18n="about_tag">About IdeaVault</span></div>
+        <h2 class="section-title" id="about-h" data-i18n="about_title">THE WORLD'S OPEN STARTUP IDEA LAB</h2>
+        <p class="section-sub" data-i18n="about_desc">IdeaVault is an open platform where entrepreneurs, students, and innovators submit raw startup ideas and explore what others are building. No gatekeeping. Pure ideation.</p>
+        <div class="about-grid-stats">
+          <div class="about-stat-card"><i class="ph-bold ph-rocket-launch" style="color:var(--neon)" aria-hidden="true"></i><strong data-i18n="about_s1">Open Platform</strong><span data-i18n="about_s1d">Anyone can submit. No sign-up needed.</span></div>
+          <div class="about-stat-card"><i class="ph-bold ph-chart-bar" style="color:var(--orange)" aria-hidden="true"></i><strong data-i18n="about_s2">Real Analytics</strong><span data-i18n="about_s2d">Difficulty &amp; market scores per idea</span></div>
+          <div class="about-stat-card"><i class="ph-bold ph-users" style="color:var(--blue)" aria-hidden="true"></i><strong data-i18n="about_s3">Community</strong><span data-i18n="about_s3d">Like, compare and discover ideas</span></div>
+          <div class="about-stat-card"><i class="ph-bold ph-lock-open" style="color:var(--pink)" aria-hidden="true"></i><strong data-i18n="about_s4">Always Free</strong><span data-i18n="about_s4d">No paywalls. No hidden fees.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" aria-labelledby="features-h">
+  <div class="container">
+    <div class="features-header reveal">
+      <div class="tag"><i class="ph-fill ph-sparkle" aria-hidden="true"></i> Features</div>
+      <h2 class="section-title" id="features-h" data-i18n="feat_title">EVERYTHING A FOUNDER NEEDS</h2>
+      <p class="section-sub" data-i18n="feat_sub">From idea submission to market analysis — all in one clean dashboard.</p>
+    </div>
+    <div class="features-grid">
+      <article class="feature-card reveal">
+        <div class="feature-icon" style="background:var(--neon-dim);border-color:rgba(0,245,160,.2)"><i class="ph-bold ph-pencil-simple-line" style="color:var(--neon)"></i></div>
+        <h3 data-i18n="f1_t">Quick Idea Submission</h3>
+        <p data-i18n="f1_d">Submit your startup idea in under 2 minutes. Fill in the name, description, category, and key metrics — and it's live instantly.</p>
+      </article>
+      <article class="feature-card reveal">
+        <div class="feature-icon" style="background:var(--orange-dim);border-color:rgba(255,107,53,.2)"><i class="ph-bold ph-chart-line-up" style="color:var(--orange)"></i></div>
+        <h3 data-i18n="f2_t">Market Potential Score</h3>
+        <p data-i18n="f2_d">Each idea gets a market potential score from 1–10 based on your input.</p>
+      </article>
+      <article class="feature-card reveal">
+        <div class="feature-icon" style="background:var(--blue-dim);border-color:rgba(91,141,238,.2)"><i class="ph-bold ph-wrench" style="color:var(--blue)"></i></div>
+        <h3 data-i18n="f3_t">Build Difficulty Meter</h3>
+        <p data-i18n="f3_d">Rate how technically complex your idea is to build. Helps other founders understand the effort required.</p>
+      </article>
+      <article class="feature-card reveal">
+        <div class="feature-icon" style="background:var(--pink-dim);border-color:rgba(240,80,200,.2)"><i class="ph-bold ph-squares-four" style="color:var(--pink)"></i></div>
+        <h3 data-i18n="f4_t">Live Ideas Dashboard</h3>
+        <p data-i18n="f4_d">Browse all submitted ideas as elegant cards. Filter, sort, and search by keyword.</p>
+      </article>
+      <article class="feature-card reveal">
+        <div class="feature-icon" style="background:var(--amber-dim);border-color:rgba(251,191,36,.2)"><i class="ph-bold ph-heart" style="color:var(--amber)"></i></div>
+        <h3 data-i18n="f5_t">Community Likes</h3>
+        <p data-i18n="f5_d">Like ideas you find compelling. Community signal for the most exciting concepts.</p>
+      </article>
+      <article class="feature-card reveal">
+        <div class="feature-icon" style="background:var(--neon-dim);border-color:rgba(0,245,160,.2)"><i class="ph-bold ph-export" style="color:var(--neon)"></i></div>
+        <h3 data-i18n="f6_t">Export Ideas</h3>
+        <p data-i18n="f6_d">Download all dashboard ideas as a JSON or CSV file for offline use, analysis, or sharing with your team.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" aria-labelledby="how-h">
+  <div class="container">
+    <div class="how-header reveal">
+      <div class="tag"><i class="ph-fill ph-path" aria-hidden="true"></i> How It Works</div>
+      <h2 class="section-title" id="how-h" data-i18n="how_title">FROM IDEA TO DASHBOARD IN 4 STEPS</h2>
+      <p class="section-sub" data-i18n="how_sub">No account required. Just fill in the form and your idea goes live instantly.</p>
+    </div>
+    <div class="how-steps">
+      <div class="how-step reveal">
+        <div class="how-step-circle"><i class="ph-bold ph-lightbulb-filament"></i><span class="how-step-num">1</span></div>
+        <h3 data-i18n="step1_t">Spark Your Idea</h3>
+        <p data-i18n="step1_d">Think of a problem worth solving. Your idea doesn't need to be polished — just real and honest.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-circle"><i class="ph-bold ph-pencil-simple-line"></i><span class="how-step-num">2</span></div>
+        <h3 data-i18n="step2_t">Fill the Form</h3>
+        <p data-i18n="step2_d">Enter your idea's name, description, category, market score, and build difficulty.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-circle"><i class="ph-bold ph-paper-plane-tilt"></i><span class="how-step-num">3</span></div>
+        <h3 data-i18n="step3_t">Submit Instantly</h3>
+        <p data-i18n="step3_d">Hit Submit and your idea is live on the dashboard within seconds.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-circle"><i class="ph-bold ph-magnifying-glass"></i><span class="how-step-num">4</span></div>
+        <h3 data-i18n="step4_t">Explore &amp; Compare</h3>
+        <p data-i18n="step4_d">Browse all ideas, like favorites, filter by category, and discover what others are building.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUBMIT FORM -->
+<section id="submit" aria-labelledby="submit-h">
+  <div class="container">
+    <div class="submit-inner">
+      <div class="reveal">
+        <div class="tag"><i class="ph-fill ph-plus-circle" aria-hidden="true"></i> <span data-i18n="form_tag">Submit Idea</span></div>
+        <h2 class="section-title" id="submit-h" data-i18n="form_title">DROP YOUR STARTUP IDEA RIGHT HERE</h2>
+        <p class="section-sub" data-i18n="form_sub">Your idea deserves an audience. Submit it and let the community discover, react, and get inspired.</p>
+        <div class="submit-perks">
+          <div class="submit-perk"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><span data-i18n="perk1">Goes live instantly — no review process</span></div>
+          <div class="submit-perk"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><span data-i18n="perk2">Seen by thousands of founders</span></div>
+          <div class="submit-perk"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><span data-i18n="perk3">Market potential and difficulty scored</span></div>
+          <div class="submit-perk"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><span data-i18n="perk4">Completely free — no account required</span></div>
+        </div>
+        <p style="margin-top:20px;font-size:.78rem;color:var(--muted)">
+          Tip: Press <kbd class="kbd">Ctrl+/</kbd> anywhere to jump to the form.
+        </p>
+      </div>
+      <div class="reveal">
+        <form class="idea-form" id="ideaForm" novalidate aria-label="Submit startup idea">
+          <h3>📝 <span data-i18n="form_heading">New Startup Idea</span></h3>
+          <div class="form-row">
+            <div class="fg">
+              <label for="ideaName" data-i18n="lbl_name">Idea Name *</label>
+              <input type="text" id="ideaName" placeholder="e.g. FoodAI" maxlength="60"/>
+              <div class="char-counter" id="nameCounter">0 / 60</div>
+              <span class="fg-error" id="eIdeaName" data-i18n="err_name">Please enter an idea name.</span>
+            </div>
+            <div class="fg">
+              <label for="founderName" data-i18n="lbl_founder">Your Name *</label>
+              <input type="text" id="founderName" placeholder="e.g. Priya Sharma" maxlength="50"/>
+              <span class="fg-error" id="eFounder" data-i18n="err_founder">Please enter your name.</span>
+            </div>
+          </div>
+          <div class="fg">
+            <label for="ideaDesc" data-i18n="lbl_desc">Description *</label>
+            <textarea id="ideaDesc" placeholder="Describe your startup idea in 1–3 sentences…" maxlength="300"></textarea>
+            <div class="char-counter" id="descCounter">0 / 300</div>
+            <span class="fg-error" id="eDesc" data-i18n="err_desc">Please describe your idea (min 20 chars).</span>
+          </div>
+          <div class="fg">
+            <label data-i18n="lbl_cat">Category *</label>
+            <div class="tag-pills" id="catPills" role="group" aria-label="Select category">
+              <span class="tag-pill" data-cat="FinTech">💳 FinTech</span>
+              <span class="tag-pill" data-cat="HealthTech">🏥 HealthTech</span>
+              <span class="tag-pill" data-cat="EdTech">🎓 EdTech</span>
+              <span class="tag-pill" data-cat="AgriTech">🌿 AgriTech</span>
+              <span class="tag-pill" data-cat="SaaS">☁️ SaaS</span>
+              <span class="tag-pill" data-cat="E-Commerce">🛒 E-Commerce</span>
+              <span class="tag-pill" data-cat="AI / ML">🤖 AI / ML</span>
+              <span class="tag-pill" data-cat="CleanTech">♻️ CleanTech</span>
+              <span class="tag-pill" data-cat="PropTech">🏠 PropTech</span>
+              <span class="tag-pill" data-cat="LegalTech">⚖️ LegalTech</span>
+              <span class="tag-pill" data-cat="Social">📱 Social</span>
+              <span class="tag-pill" data-cat="Other">💡 Other</span>
+            </div>
+            <span class="fg-error" id="eCat" data-i18n="err_cat">Please select a category.</span>
+          </div>
+          <div class="form-row">
+            <div class="fg">
+              <label for="marketSlider" data-i18n="lbl_market">Market Potential (1–10)</label>
+              <div class="slider-wrap">
+                <input type="range" id="marketSlider" min="1" max="10" value="5" aria-label="Market potential"/>
+                <span class="slider-val" id="marketVal">5</span>
+              </div>
+            </div>
+            <div class="fg">
+              <label for="diffSlider" data-i18n="lbl_diff">Build Difficulty (1–10)</label>
+              <div class="slider-wrap">
+                <input type="range" id="diffSlider" min="1" max="10" value="5" aria-label="Build difficulty"/>
+                <span class="slider-val" id="diffVal">5</span>
+              </div>
+            </div>
+          </div>
+          <div class="fg">
+            <label for="targetAudience" data-i18n="lbl_audience">Target Audience (optional)</label>
+            <input type="text" id="targetAudience" placeholder="e.g. Small business owners, Students…" maxlength="80"/>
+          </div>
+          <button type="submit" class="form-submit-btn" id="ideaSubmitBtn">
+            <i class="ph-bold ph-rocket-launch" aria-hidden="true"></i>
+            <span data-i18n="btn_submit">Launch Idea to Dashboard</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" aria-labelledby="dash-h">
+  <div class="container">
+    <div class="dash-header reveal">
+      <div>
+        <div class="tag"><i class="ph-fill ph-squares-four" aria-hidden="true"></i> Live Dashboard</div>
+        <h2 class="section-title" id="dash-h" data-i18n="dash_title">ALL IDEAS. ONE PLACE.</h2>
+      </div>
+    </div>
+    <!-- Toolbar row -->
+    <div class="dash-toolbar">
+      <input type="search" class="dash-search" id="dashSearch" placeholder="🔍 Search ideas…" aria-label="Search ideas"/>
+      <select class="dash-sort" id="dashSort" aria-label="Sort ideas">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="market">Highest Market</option>
+        <option value="difficulty">Hardest First</option>
+        <option value="likes">Most Liked</option>
+      </select>
+      <button class="dash-export-btn" id="exportJSON" aria-label="Export as JSON"><i class="ph-bold ph-download-simple"></i> JSON</button>
+      <button class="dash-export-btn" id="exportCSV"  aria-label="Export as CSV"><i class="ph-bold ph-file-csv"></i> CSV</button>
+    </div>
+    <!-- Category filter pills -->
+    <div class="dash-toolbar">
+      <button class="dash-filter active" data-filter="All"        aria-pressed="true">All</button>
+      <button class="dash-filter"        data-filter="AI / ML"    aria-pressed="false">🤖 AI</button>
+      <button class="dash-filter"        data-filter="FinTech"    aria-pressed="false">💳 FinTech</button>
+      <button class="dash-filter"        data-filter="HealthTech" aria-pressed="false">🏥 Health</button>
+      <button class="dash-filter"        data-filter="EdTech"     aria-pressed="false">🎓 EdTech</button>
+      <button class="dash-filter"        data-filter="SaaS"       aria-pressed="false">☁️ SaaS</button>
+      <button class="dash-filter"        data-filter="AgriTech"   aria-pressed="false">🌿 Agri</button>
+      <button class="dash-filter"        data-filter="CleanTech"  aria-pressed="false">♻️ Clean</button>
+    </div>
+    <!-- Live stats row -->
+    <div class="dash-stats-row" id="dashStatsRow"></div>
+    <!-- Grid -->
+    <div class="ideas-grid" id="ideasGrid" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" aria-labelledby="testi-h">
+  <div class="container">
+    <div class="testimonials-header reveal">
+      <div class="tag"><i class="ph-fill ph-quotes" aria-hidden="true"></i> Testimonials</div>
+      <h2 class="section-title" id="testi-h" data-i18n="testi_title">FOUNDERS LOVE IDEAVAULT</h2>
+      <p class="section-sub" data-i18n="testi_sub">Real feedback from real entrepreneurs.</p>
+    </div>
+    <div class="testi-grid">
+      <article class="testi-card reveal">
+        <div class="testi-quote">"</div>
+        <div class="testi-stars"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div>
+        <p class="testi-text">"I submitted my SaaS idea at midnight and by morning it had 40 likes. The dashboard is addictive — seeing your idea next to others is genuinely motivating."</p>
+        <div class="testi-author"><div class="testi-avatar" style="background:var(--neon-dim)">🧑‍💻</div><div><strong>Arjun Mehta</strong><span>SaaS Founder, Bengaluru</span></div></div>
+      </article>
+      <article class="testi-card reveal">
+        <div class="testi-quote">"</div>
+        <div class="testi-stars"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div>
+        <p class="testi-text">"The market potential slider makes you think hard about your idea's actual size. I re-evaluated two concepts after comparing them side by side."</p>
+        <div class="testi-author"><div class="testi-avatar" style="background:var(--pink-dim)">👩‍🚀</div><div><strong>Nisha Verma</strong><span>Product Designer, Mumbai</span></div></div>
+      </article>
+      <article class="testi-card reveal">
+        <div class="testi-quote">"</div>
+        <div class="testi-stars"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div>
+        <p class="testi-text">"My students use IdeaVault for our entrepreneurship class. The light mode and language options make it accessible to everyone in the class."</p>
+        <div class="testi-author"><div class="testi-avatar" style="background:var(--orange-dim)">👨‍🏫</div><div><strong>Dr. Suresh Iyer</strong><span>Entrepreneurship Professor, IIM</span></div></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" aria-labelledby="faq-h">
+  <div class="container">
+    <div class="faq-inner">
+      <div class="reveal">
+        <div class="tag"><i class="ph-fill ph-question" aria-hidden="true"></i> FAQ</div>
+        <h2 class="section-title" id="faq-h" data-i18n="faq_title">QUESTIONS? WE GOT YOU.</h2>
+        <p class="section-sub" data-i18n="faq_sub">Everything you need to know about IdeaVault.</p>
+        <a href="#contact" class="btn btn-ghost" style="margin-top:28px;display:inline-flex"><i class="ph-bold ph-chat-dots" aria-hidden="true"></i> Still have questions?</a>
+      </div>
+      <div class="faq-list reveal">
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">Do I need an account to submit? <i class="ph-bold ph-plus"></i></button><div class="faq-a">No account required. Fill in the form and your idea goes live instantly.</div></div>
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">Is IdeaVault free? <i class="ph-bold ph-plus"></i></button><div class="faq-a">Yes — 100% free. Submit, browse, like ideas with no cost.</div></div>
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">How do I switch to light mode? <i class="ph-bold ph-plus"></i></button><div class="faq-a">Click the sun/moon icon in the top navbar. Your preference is saved automatically and remembered on your next visit.</div></div>
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">Which languages are supported? <i class="ph-bold ph-plus"></i></button><div class="faq-a">Currently English, Hindi, Kannada, Tamil, French, and Spanish. More languages will be added based on community demand.</div></div>
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">Can I export the dashboard data? <i class="ph-bold ph-plus"></i></button><div class="faq-a">Yes! Use the JSON or CSV export buttons in the dashboard toolbar to download all ideas as a file you can open in Excel or any code editor.</div></div>
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">What do the keyboard shortcuts do? <i class="ph-bold ph-plus"></i></button><div class="faq-a">Press Ctrl+/ to jump to the Submit form, Ctrl+D to jump to the Dashboard, and Escape to close the idea detail modal.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" aria-labelledby="contact-h">
+  <div class="container">
+    <div class="contact-inner">
+      <div class="reveal">
+        <div class="tag"><i class="ph-fill ph-envelope" aria-hidden="true"></i> Contact</div>
+        <h2 class="section-title" id="contact-h">GET IN TOUCH</h2>
+        <p class="section-sub">Have feedback, a partnership proposal, or just want to say hi?</p>
+        <div class="contact-details">
+          <div class="contact-item"><div class="contact-icon"><i class="ph-bold ph-envelope-simple"></i></div><div><strong>Email</strong><span>hello@ideavault.io</span></div></div>
+          <div class="contact-item"><div class="contact-icon"><i class="ph-bold ph-twitter-logo"></i></div><div><strong>Twitter / X</strong><span>@IdeaVaultHQ</span></div></div>
+          <div class="contact-item"><div class="contact-icon"><i class="ph-bold ph-map-pin"></i></div><div><strong>Location</strong><span>Bengaluru, India</span></div></div>
+        </div>
+      </div>
+      <div class="reveal">
+        <form class="contact-form-wrap" id="contactForm" novalidate aria-label="Contact form">
+          <h3>Send us a message</h3>
+          <div class="form-row">
+            <div class="fg"><label for="cName">Your Name</label><input type="text" id="cName" placeholder="Full name"/><span class="fg-error" id="eCName">Required.</span></div>
+            <div class="fg"><label for="cEmail">Email Address</label><input type="email" id="cEmail" placeholder="you@example.com"/><span class="fg-error" id="eCEmail">Valid email required.</span></div>
+          </div>
+          <div class="fg"><label for="cSubject">Subject</label><input type="text" id="cSubject" placeholder="What's this about?"/></div>
+          <div class="fg"><label for="cMsg">Message</label><textarea id="cMsg" placeholder="Tell us anything…" style="min-height:110px"></textarea><span class="fg-error" id="eCMsg">Please enter a message.</span></div>
+          <button type="submit" class="contact-submit"><i class="ph-bold ph-paper-plane-tilt" aria-hidden="true"></i> Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="footer" aria-label="Footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-about">
+        <a href="#" class="nav-logo" aria-label="IdeaVault"><div class="nav-logo-dot"></div>IdeaVault</a>
+        <p>The open startup idea platform. Submit ideas, explore the dashboard, and get inspired by the global founder community.</p>
+        <div class="footer-socials" aria-label="Social media">
+          <a href="#" class="footer-social" aria-label="Twitter"><i class="ph-bold ph-twitter-logo"></i></a>
+          <a href="#" class="footer-social" aria-label="LinkedIn"><i class="ph-bold ph-linkedin-logo"></i></a>
+          <a href="#" class="footer-social" aria-label="GitHub"><i class="ph-bold ph-github-logo"></i></a>
+          <a href="#" class="footer-social" aria-label="Instagram"><i class="ph-bold ph-instagram-logo"></i></a>
+        </div>
+      </div>
+      <div class="footer-col"><h4>Platform</h4><ul><li><a href="#features">Features</a></li><li><a href="#how">How It Works</a></li><li><a href="#dashboard">Dashboard</a></li><li><a href="#submit">Submit Idea</a></li></ul></div>
+      <div class="footer-col"><h4>Company</h4><ul><li><a href="#about">About</a></li><li><a href="#">Blog</a></li><li><a href="#">Careers</a></li><li><a href="#contact">Contact</a></li></ul></div>
+      <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Use</a></li><li><a href="#">Cookie Policy</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 IdeaVault. Built for founders, by founders.</p>
+      <div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Cookies</a></div>
+    </div>
+  </div>
+</footer>
+
+<button id="scrollTop" aria-label="Back to top"><i class="ph-bold ph-arrow-up"></i></button>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════════ -->
+<script>
+/* ══════════════════════════════════════
+   I18N TRANSLATIONS
+══════════════════════════════════════ */
+var LANGS = {
+  en: {
+    nav_about:'About', nav_features:'Features', nav_dashboard:'Dashboard', nav_faq:'FAQ', nav_submit:'Submit Idea',
+    hero_live:'Live Idea Feed Active', hero_title:'YOUR STARTUP\nIDEA LIVES HERE',
+    hero_desc:'Submit, explore, and compare startup ideas from founders worldwide.',
+    hero_cta1:'Submit Your Idea', hero_cta2:'Explore Dashboard',
+    stat_ideas:'Ideas Submitted', stat_cats:'Categories', stat_approval:'Founder Approval',
+    about_tag:'About IdeaVault', about_title:"THE WORLD'S OPEN STARTUP IDEA LAB",
+    about_desc:'IdeaVault is an open platform where entrepreneurs, students, and innovators submit raw startup ideas.',
+    about_sub:'Unlimited possibilities',
+    about_s1:'Open Platform', about_s1d:'Anyone can submit. No sign-up needed.',
+    about_s2:'Real Analytics', about_s2d:'Difficulty & market scores per idea',
+    about_s3:'Community', about_s3d:'Like, compare and discover ideas',
+    about_s4:'Always Free', about_s4d:'No paywalls. No hidden fees.',
+    feat_title:'EVERYTHING A FOUNDER NEEDS', feat_sub:'From idea submission to market analysis.',
+    f1_t:'Quick Idea Submission', f1_d:'Submit your startup idea in under 2 minutes.',
+    f2_t:'Market Potential Score', f2_d:'Each idea gets a market score from 1–10.',
+    f3_t:'Build Difficulty Meter', f3_d:'Rate how technically complex your idea is.',
+    f4_t:'Live Ideas Dashboard', f4_d:'Browse all submitted ideas as elegant cards.',
+    f5_t:'Community Likes', f5_d:'Like ideas you find compelling.',
+    f6_t:'Export Ideas', f6_d:'Download all ideas as JSON or CSV.',
+    how_title:'FROM IDEA TO DASHBOARD IN 4 STEPS', how_sub:'No account required.',
+    step1_t:'Spark Your Idea', step1_d:"Think of a problem worth solving.",
+    step2_t:'Fill the Form', step2_d:"Enter name, description, category, scores.",
+    step3_t:'Submit Instantly', step3_d:"Your idea is live within seconds.",
+    step4_t:'Explore & Compare', step4_d:"Browse, like, and discover.",
+    form_tag:'Submit Idea', form_title:'DROP YOUR STARTUP IDEA RIGHT HERE',
+    form_sub:'Your idea deserves an audience.',
+    perk1:'Goes live instantly', perk2:'Seen by thousands of founders',
+    perk3:'Market & difficulty scored', perk4:'Completely free',
+    form_heading:'New Startup Idea',
+    lbl_name:'Idea Name *', lbl_founder:'Your Name *', lbl_desc:'Description *',
+    lbl_cat:'Category *', lbl_market:'Market Potential (1–10)',
+    lbl_diff:'Build Difficulty (1–10)', lbl_audience:'Target Audience (optional)',
+    btn_submit:'Launch Idea to Dashboard',
+    err_name:'Please enter an idea name.', err_founder:'Please enter your name.',
+    err_desc:'Please describe your idea (min 20 chars).', err_cat:'Please select a category.',
+    dash_title:'ALL IDEAS. ONE PLACE.',
+    testi_title:'FOUNDERS LOVE IDEAVAULT', testi_sub:'Real feedback from real entrepreneurs.',
+    faq_title:'QUESTIONS? WE GOT YOU.', faq_sub:'Everything you need to know about IdeaVault.',
+    toast_submitted:'🚀 Your idea is now live!', toast_liked:'❤️ Idea liked!', toast_unliked:'💔 Like removed.',
+    toast_exported:'📥 Ideas exported successfully!', toast_contact:'✅ Message sent! We\'ll reply within 24h.',
+  },
+  hi: {
+    nav_about:'परिचय', nav_features:'सुविधाएँ', nav_dashboard:'डैशबोर्ड', nav_faq:'FAQ', nav_submit:'आइडिया भेजें',
+    hero_live:'लाइव आइडिया फीड सक्रिय', hero_title:'आपका स्टार्टअप\nआइडिया यहाँ रहता है',
+    hero_desc:'दुनिया भर के संस्थापकों के साथ स्टार्टअप आइडिया सबमिट, एक्सप्लोर और तुलना करें।',
+    hero_cta1:'आइडिया सबमिट करें', hero_cta2:'डैशबोर्ड देखें',
+    stat_ideas:'आइडिया सबमिट किए', stat_cats:'श्रेणियाँ', stat_approval:'संस्थापक अनुमोदन',
+    about_tag:'IdeaVault के बारे में', about_title:'विश्व की खुली स्टार्टअप आइडिया लैब',
+    about_desc:'IdeaVault एक खुला प्लेटफॉर्म है जहाँ उद्यमी और छात्र अपने आइडिया साझा करते हैं।',
+    about_sub:'असीमित संभावनाएँ',
+    about_s1:'खुला प्लेटफॉर्म', about_s1d:'कोई भी सबमिट कर सकता है।',
+    about_s2:'रियल एनालिटिक्स', about_s2d:'कठिनाई और बाजार स्कोर',
+    about_s3:'समुदाय', about_s3d:'लाइक करें, तुलना करें',
+    about_s4:'हमेशा मुफ्त', about_s4d:'कोई छिपे शुल्क नहीं।',
+    feat_title:'एक संस्थापक को सब कुछ चाहिए', feat_sub:'आइडिया सबमिशन से बाजार विश्लेषण तक।',
+    f1_t:'त्वरित आइडिया सबमिशन', f1_d:'2 मिनट में अपना स्टार्टअप आइडिया सबमिट करें।',
+    f2_t:'बाजार संभावना स्कोर', f2_d:'प्रत्येक आइडिया को 1–10 का स्कोर मिलता है।',
+    f3_t:'निर्माण कठिनाई मीटर', f3_d:'बताएं आपका आइडिया कितना तकनीकी है।',
+    f4_t:'लाइव आइडिया डैशबोर्ड', f4_d:'सभी सबमिट किए गए आइडिया कार्ड के रूप में देखें।',
+    f5_t:'सामुदायिक लाइक', f5_d:'पसंदीदा आइडिया को लाइक करें।',
+    f6_t:'आइडिया निर्यात करें', f6_d:'JSON या CSV के रूप में डाउनलोड करें।',
+    how_title:'4 चरणों में आइडिया से डैशबोर्ड तक', how_sub:'कोई खाता आवश्यक नहीं।',
+    step1_t:'आइडिया सोचें', step1_d:'एक समस्या खोजें जो हल करने योग्य हो।',
+    step2_t:'फॉर्म भरें', step2_d:'नाम, विवरण, श्रेणी और स्कोर दर्ज करें।',
+    step3_t:'तुरंत सबमिट करें', step3_d:'आपका आइडिया सेकंडों में लाइव हो जाता है।',
+    step4_t:'एक्सप्लोर करें', step4_d:'ब्राउज़ करें, लाइक करें और खोज करें।',
+    form_tag:'आइडिया सबमिट करें', form_title:'अपना स्टार्टअप आइडिया यहाँ डालें',
+    form_sub:'आपके आइडिया को एक दर्शक चाहिए।',
+    perk1:'तुरंत लाइव होता है', perk2:'हज़ारों संस्थापक देखते हैं',
+    perk3:'बाजार और कठिनाई स्कोर', perk4:'पूरी तरह मुफ्त',
+    form_heading:'नया स्टार्टअप आइडिया',
+    lbl_name:'आइडिया का नाम *', lbl_founder:'आपका नाम *', lbl_desc:'विवरण *',
+    lbl_cat:'श्रेणी *', lbl_market:'बाजार संभावना (1–10)',
+    lbl_diff:'निर्माण कठिनाई (1–10)', lbl_audience:'लक्षित दर्शक (वैकल्पिक)',
+    btn_submit:'डैशबोर्ड पर आइडिया लॉन्च करें',
+    err_name:'कृपया आइडिया का नाम दर्ज करें।', err_founder:'कृपया अपना नाम दर्ज करें।',
+    err_desc:'कृपया विवरण दर्ज करें (न्यूनतम 20 वर्ण)।', err_cat:'कृपया श्रेणी चुनें।',
+    dash_title:'सभी आइडिया। एक जगह।',
+    testi_title:'संस्थापक IdeaVault को पसंद करते हैं', testi_sub:'वास्तविक फीडबैक।',
+    faq_title:'सवाल? हम यहाँ हैं।', faq_sub:'IdeaVault के बारे में सब कुछ जानें।',
+    toast_submitted:'🚀 आपका आइडिया लाइव है!', toast_liked:'❤️ आइडिया लाइक किया!', toast_unliked:'💔 लाइक हटाया।',
+    toast_exported:'📥 आइडिया निर्यात किया!', toast_contact:'✅ संदेश भेजा गया!',
+  },
+  kn: {
+    nav_about:'ಬಗ್ಗೆ', nav_features:'ವೈಶಿಷ್ಟ್ಯಗಳು', nav_dashboard:'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', nav_faq:'FAQ', nav_submit:'ಐಡಿಯಾ ಸಲ್ಲಿಸಿ',
+    hero_live:'ಲೈವ್ ಐಡಿಯಾ ಫೀಡ್ ಸಕ್ರಿಯ', hero_title:'ನಿಮ್ಮ ಸ್ಟಾರ್ಟಪ್\nಐಡಿಯಾ ಇಲ್ಲಿ ವಾಸಿಸುತ್ತದೆ',
+    hero_desc:'ವಿಶ್ವದಾದ್ಯಂತ ಸಂಸ್ಥಾಪಕರೊಂದಿಗೆ ಸ್ಟಾರ್ಟಪ್ ಐಡಿಯಾಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ.',
+    hero_cta1:'ಐಡಿಯಾ ಸಲ್ಲಿಸಿ', hero_cta2:'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ನೋಡಿ',
+    stat_ideas:'ಐಡಿಯಾಗಳು ಸಲ್ಲಿಸಲಾಗಿದೆ', stat_cats:'ವರ್ಗಗಳು', stat_approval:'ಅನುಮೋದನೆ',
+    about_tag:'IdeaVault ಬಗ್ಗೆ', about_title:'ವಿಶ್ವದ ತೆರೆದ ಸ್ಟಾರ್ಟಪ್ ಐಡಿಯಾ ಲ್ಯಾಬ್',
+    about_desc:'IdeaVault ಒಂದು ತೆರೆದ ವೇದಿಕೆ.', about_sub:'ಅನಂತ ಸಾಧ್ಯತೆಗಳು',
+    about_s1:'ತೆರೆದ ವೇದಿಕೆ', about_s1d:'ಯಾರಾದರೂ ಸಲ್ಲಿಸಬಹುದು.',
+    about_s2:'ವಿಶ್ಲೇಷಣೆ', about_s2d:'ಕಷ್ಟ ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಸ್ಕೋರ್',
+    about_s3:'ಸಮುದಾಯ', about_s3d:'ಲೈಕ್, ಹೋಲಿಕೆ ಮಾಡಿ',
+    about_s4:'ಯಾವಾಗಲೂ ಉಚಿತ', about_s4d:'ಯಾವುದೇ ಶುಲ್ಕ ಇಲ್ಲ.',
+    feat_title:'ಸಂಸ್ಥಾಪಕರಿಗೆ ಎಲ್ಲವೂ ಬೇಕು', feat_sub:'ಒಂದು ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನಲ್ಲಿ ಎಲ್ಲಾ.',
+    f1_t:'ತ್ವರಿತ ಸಲ್ಲಿಕೆ', f1_d:'2 ನಿಮಿಷದಲ್ಲಿ ಸಲ್ಲಿಸಿ.', f2_t:'ಮಾರುಕಟ್ಟೆ ಸ್ಕೋರ್', f2_d:'1–10 ರ ಸ್ಕೋರ್.',
+    f3_t:'ಕಷ್ಟ ಮೀಟರ್', f3_d:'ತಾಂತ್ರಿಕ ಸಂಕೀರ್ಣತೆ ರೇಟ್ ಮಾಡಿ.', f4_t:'ಲೈವ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', f4_d:'ಎಲ್ಲಾ ಐಡಿಯಾಗಳನ್ನು ಕಾರ್ಡ್‌ಗಳಾಗಿ ನೋಡಿ.',
+    f5_t:'ಲೈಕ್ಗಳು', f5_d:'ನಿಮ್ಮ ನೆಚ್ಚಿನ ಐಡಿಯಾಗಳನ್ನು ಲೈಕ್ ಮಾಡಿ.', f6_t:'ರಫ್ತು ಮಾಡಿ', f6_d:'JSON ಅಥವಾ CSV ಆಗಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.',
+    how_title:'4 ಹಂತಗಳಲ್ಲಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ', how_sub:'ಯಾವುದೇ ಖಾತೆ ಅಗತ್ಯವಿಲ್ಲ.',
+    step1_t:'ಐಡಿಯಾ ಯೋಚಿಸಿ', step1_d:'ಒಂದು ಸಮಸ್ಯೆ ಹುಡುಕಿ.', step2_t:'ಫಾರ್ಮ್ ತುಂಬಿ', step2_d:'ಎಲ್ಲಾ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ.',
+    step3_t:'ತಕ್ಷಣ ಸಲ್ಲಿಸಿ', step3_d:'ಸೆಕೆಂಡುಗಳಲ್ಲಿ ಲೈವ್.', step4_t:'ಅನ್ವೇಷಿಸಿ', step4_d:'ಬ್ರೌಸ್ ಮಾಡಿ ಮತ್ತು ಹೋಲಿಸಿ.',
+    form_tag:'ಐಡಿಯಾ ಸಲ್ಲಿಸಿ', form_title:'ನಿಮ್ಮ ಸ್ಟಾರ್ಟಪ್ ಐಡಿಯಾ ಇಲ್ಲಿ ಹಾಕಿ',
+    form_sub:'ನಿಮ್ಮ ಐಡಿಯಾಕ್ಕೆ ಪ್ರೇಕ್ಷಕರು ಸಿಗಲಿ.',
+    perk1:'ತಕ್ಷಣ ಲೈವ್', perk2:'ಸಾವಿರಾರು ಸಂಸ್ಥಾಪಕರು ನೋಡುತ್ತಾರೆ',
+    perk3:'ಸ್ಕೋರ್ ಸ್ವಯಂಚಾಲಿತ', perk4:'ಸಂಪೂರ್ಣ ಉಚಿತ',
+    form_heading:'ಹೊಸ ಸ್ಟಾರ್ಟಪ್ ಐಡಿಯಾ',
+    lbl_name:'ಐಡಿಯಾ ಹೆಸರು *', lbl_founder:'ನಿಮ್ಮ ಹೆಸರು *', lbl_desc:'ವಿವರಣೆ *',
+    lbl_cat:'ವರ್ಗ *', lbl_market:'ಮಾರುಕಟ್ಟೆ ಸಾಮರ್ಥ್ಯ (1–10)',
+    lbl_diff:'ನಿರ್ಮಾಣ ಕಷ್ಟ (1–10)', lbl_audience:'ಗುರಿ ಪ್ರೇಕ್ಷಕ (ಐಚ್ಛಿಕ)',
+    btn_submit:'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಲಾಂಚ್ ಮಾಡಿ',
+    err_name:'ಐಡಿಯಾ ಹೆಸರು ನಮೂದಿಸಿ.', err_founder:'ನಿಮ್ಮ ಹೆಸರು ನಮೂದಿಸಿ.',
+    err_desc:'ವಿವರಣೆ ನಮೂದಿಸಿ (ಕನಿಷ್ಠ 20 ಅಕ್ಷರ).', err_cat:'ವರ್ಗ ಆಯ್ಕೆ ಮಾಡಿ.',
+    dash_title:'ಎಲ್ಲಾ ಐಡಿಯಾಗಳು. ಒಂದೇ ಸ್ಥಳ.',
+    testi_title:'ಸಂಸ್ಥಾಪಕರು IdeaVault ಅನ್ನು ಪ್ರೀತಿಸುತ್ತಾರೆ', testi_sub:'ನೈಜ ಪ್ರತಿಕ್ರಿಯೆ.',
+    faq_title:'ಪ್ರಶ್ನೆಗಳಿವೆಯೇ?', faq_sub:'IdeaVault ಬಗ್ಗೆ ತಿಳಿಯಿರಿ.',
+    toast_submitted:'🚀 ನಿಮ್ಮ ಐಡಿಯಾ ಲೈವ್!', toast_liked:'❤️ ಲೈಕ್ ಮಾಡಲಾಗಿದೆ!', toast_unliked:'💔 ಲೈಕ್ ತೆಗೆದಿದೆ.',
+    toast_exported:'📥 ರಫ್ತು ಯಶಸ್ವಿ!', toast_contact:'✅ ಸಂದೇಶ ಕಳುಹಿಸಲಾಗಿದೆ!',
+  },
+  ta: {
+    nav_about:'பற்றி', nav_features:'அம்சங்கள்', nav_dashboard:'டாஷ்போர்டு', nav_faq:'FAQ', nav_submit:'யோசனை சமர்ப்பி',
+    hero_live:'நேரடி யோசனை ஊட்டம் செயல்படுகிறது', hero_title:'உங்கள் ஸ்டார்டப்\nயோசனை இங்கே வாழ்கிறது',
+    hero_desc:'உலகெங்கும் உள்ள நிறுவனர்களிடமிருந்து யோசனைகளை ஆராயுங்கள்.',
+    hero_cta1:'யோசனை சமர்ப்பிக்கவும்', hero_cta2:'டாஷ்போர்டு பார்க்கவும்',
+    stat_ideas:'யோசனைகள் சமர்ப்பிக்கப்பட்டன', stat_cats:'வகைகள்', stat_approval:'அங்கீகாரம்',
+    about_tag:'IdeaVault பற்றி', about_title:'உலகின் திறந்த ஸ்டார்டப் யோசனை ஆய்வகம்',
+    about_desc:'IdeaVault ஒரு திறந்த தளம்.', about_sub:'வரம்பற்ற சாத்தியங்கள்',
+    about_s1:'திறந்த தளம்', about_s1d:'யாரும் சமர்ப்பிக்கலாம்.',
+    about_s2:'உண்மையான பகுப்பாய்வு', about_s2d:'கஷ்டம் மற்றும் சந்தை மதிப்பெண்',
+    about_s3:'சமூகம்', about_s3d:'விரும்புங்கள், ஒப்பிடுங்கள்',
+    about_s4:'எப்போதும் இலவசம்', about_s4d:'கட்டணம் இல்லை.',
+    feat_title:'ஒரு நிறுவனருக்கு தேவையான அனைத்தும்', feat_sub:'ஒரே இடத்தில்.',
+    f1_t:'விரைவான சமர்ப்பிப்பு', f1_d:'2 நிமிடங்களில் சமர்ப்பிக்கவும்.',
+    f2_t:'சந்தை மதிப்பெண்', f2_d:'1–10 மதிப்பெண்.', f3_t:'கட்டிட கஷ்டம்', f3_d:'தொழில்நுட்ப சிக்கலை மதிப்பிடுங்கள்.',
+    f4_t:'நேரடி டாஷ்போர்டு', f4_d:'அட்டைகளாக யோசனைகளை பார்க்கவும்.',
+    f5_t:'சமூக விருப்பங்கள்', f5_d:'விரும்பும் யோசனைகளை விரும்புங்கள்.',
+    f6_t:'ஏற்றுமதி', f6_d:'JSON அல்லது CSV ஆக பதிவிறக்கவும்.',
+    how_title:'4 படிகளில் டாஷ்போர்டிற்கு', how_sub:'கணக்கு தேவையில்லை.',
+    step1_t:'யோசிக்கவும்', step1_d:'தீர்க்கத்தக்க ஒரு சிக்கலைக் கண்டறியுங்கள்.',
+    step2_t:'படிவத்தை நிரப்பவும்', step2_d:'விவரங்களை உள்ளிடுங்கள்.',
+    step3_t:'உடனடியாக சமர்ப்பிக்கவும்', step3_d:'நொடியில் நேரடியாகும்.',
+    step4_t:'ஆராயுங்கள்', step4_d:'கண்டுபிடித்து ஒப்பிடுங்கள்.',
+    form_tag:'யோசனை சமர்ப்பி', form_title:'உங்கள் யோசனையை இங்கே இடுங்கள்',
+    form_sub:'உங்கள் யோசனைக்கு பார்வையாளர்கள் கிடைக்கட்டும்.',
+    perk1:'உடனடியாக நேரடியாகும்', perk2:'ஆயிரக்கணக்கான நிறுவனர்கள் பார்க்கிறார்கள்',
+    perk3:'மதிப்பெண்கள் தானாக', perk4:'முற்றிலும் இலவசம்',
+    form_heading:'புதிய ஸ்டார்டப் யோசனை',
+    lbl_name:'யோசனை பெயர் *', lbl_founder:'உங்கள் பெயர் *', lbl_desc:'விளக்கம் *',
+    lbl_cat:'வகை *', lbl_market:'சந்தை ஆற்றல் (1–10)',
+    lbl_diff:'கட்டிட கஷ்டம் (1–10)', lbl_audience:'இலக்கு பார்வையாளர் (விருப்பமானது)',
+    btn_submit:'டாஷ்போர்டில் அறிமுகப்படுத்தவும்',
+    err_name:'யோசனை பெயரை உள்ளிடவும்.', err_founder:'உங்கள் பெயரை உள்ளிடவும்.',
+    err_desc:'விளக்கத்தை உள்ளிடவும் (குறைந்தது 20 எழுத்து).', err_cat:'வகையை தேர்ந்தெடுக்கவும்.',
+    dash_title:'அனைத்து யோசனைகளும். ஒரே இடத்தில்.',
+    testi_title:'நிறுவனர்கள் IdeaVault-ஐ விரும்புகிறார்கள்', testi_sub:'உண்மையான கருத்துக்கள்.',
+    faq_title:'கேள்விகளா?', faq_sub:'IdeaVault பற்றி அனைத்தும் தெரிந்துகொள்ளுங்கள்.',
+    toast_submitted:'🚀 உங்கள் யோசனை நேரடியாக உள்ளது!', toast_liked:'❤️ விரும்பியது!', toast_unliked:'💔 விருப்பம் நீக்கியது.',
+    toast_exported:'📥 ஏற்றுமதி வெற்றிகரமாக!', toast_contact:'✅ செய்தி அனுப்பப்பட்டது!',
+  },
+  fr: {
+    nav_about:'À propos', nav_features:'Fonctionnalités', nav_dashboard:'Tableau de bord', nav_faq:'FAQ', nav_submit:'Soumettre une idée',
+    hero_live:'Flux d\'idées en direct', hero_title:'VOTRE STARTUP\nVIT ICI',
+    hero_desc:'Soumettez, explorez et comparez des idées de startups du monde entier.',
+    hero_cta1:'Soumettre votre idée', hero_cta2:'Explorer le tableau de bord',
+    stat_ideas:'Idées soumises', stat_cats:'Catégories', stat_approval:'Approbation',
+    about_tag:'À propos d\'IdeaVault', about_title:'LE LABORATOIRE MONDIAL DES IDÉES STARTUP',
+    about_desc:'IdeaVault est une plateforme ouverte pour les entrepreneurs.', about_sub:'Possibilités illimitées',
+    about_s1:'Plateforme ouverte', about_s1d:'N\'importe qui peut soumettre.',
+    about_s2:'Analyses réelles', about_s2d:'Scores de difficulté et de marché',
+    about_s3:'Communauté', about_s3d:'Aimez, comparez et découvrez',
+    about_s4:'Toujours gratuit', about_s4d:'Aucuns frais cachés.',
+    feat_title:'TOUT CE DONT UN FONDATEUR A BESOIN', feat_sub:'De la soumission à l\'analyse.',
+    f1_t:'Soumission rapide', f1_d:'Soumettez en moins de 2 minutes.', f2_t:'Score de marché', f2_d:'Score de 1 à 10.',
+    f3_t:'Compteur de difficulté', f3_d:'Évaluez la complexité technique.', f4_t:'Tableau de bord en direct', f4_d:'Parcourez les idées en cartes.',
+    f5_t:'Likes communautaires', f5_d:'Aimez les idées que vous trouvez intéressantes.', f6_t:'Exporter les idées', f6_d:'Téléchargez en JSON ou CSV.',
+    how_title:'DE L\'IDÉE AU TABLEAU DE BORD EN 4 ÉTAPES', how_sub:'Aucun compte requis.',
+    step1_t:'Trouvez votre idée', step1_d:'Pensez à un problème à résoudre.',
+    step2_t:'Remplissez le formulaire', step2_d:'Saisissez tous les détails.',
+    step3_t:'Soumettez instantanément', step3_d:'En direct en quelques secondes.',
+    step4_t:'Explorez et comparez', step4_d:'Parcourez et découvrez.',
+    form_tag:'Soumettre une idée', form_title:'DÉPOSEZ VOTRE IDÉE DE STARTUP ICI',
+    form_sub:'Votre idée mérite un public.',
+    perk1:'En direct instantanément', perk2:'Vu par des milliers de fondateurs',
+    perk3:'Scores automatiques', perk4:'Entièrement gratuit',
+    form_heading:'Nouvelle idée de startup',
+    lbl_name:'Nom de l\'idée *', lbl_founder:'Votre nom *', lbl_desc:'Description *',
+    lbl_cat:'Catégorie *', lbl_market:'Potentiel de marché (1–10)',
+    lbl_diff:'Difficulté de construction (1–10)', lbl_audience:'Public cible (optionnel)',
+    btn_submit:'Lancer l\'idée sur le tableau de bord',
+    err_name:'Veuillez entrer un nom.', err_founder:'Veuillez entrer votre nom.',
+    err_desc:'Veuillez décrire votre idée (min 20 caractères).', err_cat:'Veuillez sélectionner une catégorie.',
+    dash_title:'TOUTES LES IDÉES. UN SEUL ENDROIT.',
+    testi_title:'LES FONDATEURS ADORENT IDEAVAULT', testi_sub:'Retours réels d\'entrepreneurs.',
+    faq_title:'DES QUESTIONS?', faq_sub:'Tout sur IdeaVault.',
+    toast_submitted:'🚀 Votre idée est en ligne!', toast_liked:'❤️ Idée aimée!', toast_unliked:'💔 Like retiré.',
+    toast_exported:'📥 Export réussi!', toast_contact:'✅ Message envoyé!',
+  },
+  es: {
+    nav_about:'Acerca de', nav_features:'Características', nav_dashboard:'Panel', nav_faq:'FAQ', nav_submit:'Enviar idea',
+    hero_live:'Feed de ideas en vivo', hero_title:'TU STARTUP\nVIVE AQUÍ',
+    hero_desc:'Envía, explora y compara ideas de startups de todo el mundo.',
+    hero_cta1:'Enviar tu idea', hero_cta2:'Explorar el panel',
+    stat_ideas:'Ideas enviadas', stat_cats:'Categorías', stat_approval:'Aprobación',
+    about_tag:'Sobre IdeaVault', about_title:'EL LABORATORIO ABIERTO DE IDEAS STARTUP',
+    about_desc:'IdeaVault es una plataforma abierta para emprendedores.', about_sub:'Posibilidades ilimitadas',
+    about_s1:'Plataforma abierta', about_s1d:'Cualquiera puede enviar.',
+    about_s2:'Analítica real', about_s2d:'Puntuaciones de dificultad y mercado',
+    about_s3:'Comunidad', about_s3d:'Dar me gusta, comparar y descubrir',
+    about_s4:'Siempre gratis', about_s4d:'Sin costos ocultos.',
+    feat_title:'TODO LO QUE UN FUNDADOR NECESITA', feat_sub:'Del envío al análisis.',
+    f1_t:'Envío rápido', f1_d:'Envía en menos de 2 minutos.', f2_t:'Puntuación de mercado', f2_d:'Puntuación de 1 a 10.',
+    f3_t:'Medidor de dificultad', f3_d:'Evalúa la complejidad técnica.', f4_t:'Panel en vivo', f4_d:'Ideas como tarjetas elegantes.',
+    f5_t:'Me gusta de la comunidad', f5_d:'Da me gusta a las ideas.', f6_t:'Exportar ideas', f6_d:'Descarga como JSON o CSV.',
+    how_title:'DE IDEA A PANEL EN 4 PASOS', how_sub:'Sin cuenta requerida.',
+    step1_t:'Piensa tu idea', step1_d:'Encuentra un problema que resolver.',
+    step2_t:'Completa el formulario', step2_d:'Ingresa todos los detalles.',
+    step3_t:'Envía al instante', step3_d:'En vivo en segundos.',
+    step4_t:'Explora y compara', step4_d:'Navega y descubre.',
+    form_tag:'Enviar idea', form_title:'DEJA TU IDEA DE STARTUP AQUÍ',
+    form_sub:'Tu idea merece una audiencia.',
+    perk1:'En vivo al instante', perk2:'Vista por miles de fundadores',
+    perk3:'Puntuaciones automáticas', perk4:'Completamente gratis',
+    form_heading:'Nueva idea de startup',
+    lbl_name:'Nombre de la idea *', lbl_founder:'Tu nombre *', lbl_desc:'Descripción *',
+    lbl_cat:'Categoría *', lbl_market:'Potencial de mercado (1–10)',
+    lbl_diff:'Dificultad de construcción (1–10)', lbl_audience:'Público objetivo (opcional)',
+    btn_submit:'Lanzar idea al panel',
+    err_name:'Por favor ingresa un nombre.', err_founder:'Por favor ingresa tu nombre.',
+    err_desc:'Por favor describe tu idea (mín 20 caracteres).', err_cat:'Por favor selecciona una categoría.',
+    dash_title:'TODAS LAS IDEAS. UN LUGAR.',
+    testi_title:'LOS FUNDADORES AMAN IDEAVAULT', testi_sub:'Retroalimentación real.',
+    faq_title:'¿PREGUNTAS?', faq_sub:'Todo sobre IdeaVault.',
+    toast_submitted:'🚀 ¡Tu idea está en vivo!', toast_liked:'❤️ ¡Idea gustada!', toast_unliked:'💔 Me gusta eliminado.',
+    toast_exported:'📥 ¡Exportación exitosa!', toast_contact:'✅ ¡Mensaje enviado!',
+  }
+};
+
+/* ══════════════════════════════════════
+   CATEGORY CONFIG
+══════════════════════════════════════ */
+var CAT_CONFIG = {
+  'FinTech':    { color:'#00f5a0', bg:'rgba(0,245,160,.12)',   icon:'💳' },
+  'HealthTech': { color:'#5b8dee', bg:'rgba(91,141,238,.12)',  icon:'🏥' },
+  'EdTech':     { color:'#fbbf24', bg:'rgba(251,191,36,.12)',  icon:'🎓' },
+  'AgriTech':   { color:'#4ade80', bg:'rgba(74,222,128,.12)',  icon:'🌿' },
+  'SaaS':       { color:'#a78bfa', bg:'rgba(167,139,250,.12)', icon:'☁️' },
+  'E-Commerce': { color:'#f97316', bg:'rgba(249,115,22,.12)',  icon:'🛒' },
+  'AI / ML':    { color:'#ff6b35', bg:'rgba(255,107,53,.12)',  icon:'🤖' },
+  'CleanTech':  { color:'#34d399', bg:'rgba(52,211,153,.12)',  icon:'♻️' },
+  'PropTech':   { color:'#f472b6', bg:'rgba(244,114,182,.12)', icon:'🏠' },
+  'LegalTech':  { color:'#94a3b8', bg:'rgba(148,163,184,.12)', icon:'⚖️' },
+  'Social':     { color:'#f050c8', bg:'rgba(240,80,200,.12)',  icon:'📱' },
+  'Other':      { color:'#e2e8f0', bg:'rgba(226,232,240,.12)', icon:'💡' }
+};
+
+var SEED_IDEAS = [
+  { id:1, name:'MicroLoan AI',  founder:'Rahul Desai',   desc:'AI-powered micro-lending platform for small vendors with no credit history, using transaction data to assess creditworthiness in real time.', category:'FinTech',    market:9, difficulty:7, audience:'Street vendors', likes:42, date:'2025-03-01' },
+  { id:2, name:'ClassBot',      founder:'Ananya Singh',  desc:'AI tutor that adapts to individual student learning pace and style for grades 6–12 in vernacular languages across India.', category:'EdTech',     market:8, difficulty:6, audience:'Students, parents', likes:31, date:'2025-03-03' },
+  { id:3, name:'FarmSense',     founder:'Vikram Ravi',   desc:'IoT soil sensors combined with AI recommendations for optimal fertilizer and irrigation scheduling for small farms in rural areas.', category:'AgriTech',   market:8, difficulty:8, audience:'Small-scale farmers', likes:27, date:'2025-03-05' },
+  { id:4, name:'LegalDraft',    founder:'Pooja Nair',    desc:'Auto-generate legal contracts and agreements using natural language prompts — for freelancers and small businesses with no legal background.', category:'LegalTech',  market:7, difficulty:5, audience:'Freelancers, SMBs', likes:55, date:'2025-03-07' },
+  { id:5, name:'CarbonPass',    founder:'Rohan Gupta',   desc:'Personal carbon footprint tracker with marketplace to buy verified carbon offsets directly from local project owners worldwide.', category:'CleanTech',  market:7, difficulty:6, audience:'Eco-conscious consumers', likes:38, date:'2025-03-09' },
+  { id:6, name:'HealthFirst',   founder:'Meera Iyer',    desc:'Telemedicine platform connecting rural patients to specialist doctors with offline-first functionality and regional language support.', category:'HealthTech', market:9, difficulty:7, audience:'Rural patients', likes:61, date:'2025-03-11' }
+];
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+var ideas          = [];
+var selectedCat    = '';
+var activeFilter   = 'All';
+var searchQuery    = '';
+var sortBy         = 'newest';
+var currentLang    = 'en';
+var isDark         = true;
+var baseFontSize   = 16;
+
+/* ══════════════════════════════════════
+   STORAGE HELPERS
+══════════════════════════════════════ */
+function loadIdeas() {
+  try { ideas = JSON.parse(localStorage.getItem('iv_ideas')) || SEED_IDEAS.map(function(i){return Object.assign({},i);}); }
+  catch(e) { ideas = SEED_IDEAS.map(function(i){return Object.assign({},i);}); }
+}
+function saveIdeas() { try{localStorage.setItem('iv_ideas', JSON.stringify(ideas));}catch(e){} }
+function loadPrefs() {
+  isDark       = localStorage.getItem('iv_dark')   !== 'false';
+  currentLang  = localStorage.getItem('iv_lang')   || 'en';
+  baseFontSize = parseInt(localStorage.getItem('iv_font')) || 16;
+  applyTheme(isDark);
+  applyLang(currentLang);
+  applyFont(baseFontSize);
+}
+
+/* ══════════════════════════════════════
+   THEME
+══════════════════════════════════════ */
+function applyTheme(dark) {
+  isDark = dark;
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  var icon = document.getElementById('themeIcon');
+  if(icon) icon.className = dark ? 'ph-bold ph-sun' : 'ph-bold ph-moon';
+  localStorage.setItem('iv_dark', String(dark));
+}
+
+/* ══════════════════════════════════════
+   FONT SIZE
+══════════════════════════════════════ */
+function applyFont(size) {
+  baseFontSize = Math.max(13, Math.min(20, size));
+  document.documentElement.style.fontSize = baseFontSize + 'px';
+  localStorage.setItem('iv_font', baseFontSize);
+}
+
+/* ══════════════════════════════════════
+   I18N
+══════════════════════════════════════ */
+function applyLang(lang) {
+  currentLang = lang;
+  document.documentElement.setAttribute('lang', lang);
+  document.documentElement.setAttribute('data-lang', lang);
+  localStorage.setItem('iv_lang', lang);
+  var t = LANGS[lang] || LANGS['en'];
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if(t[key] !== undefined) {
+      if(key === 'hero_title') {
+        var parts = t[key].split('\n');
+        el.innerHTML = parts[0] + (parts[1] ? '<br><span class="line2">'+parts[1]+'</span>' : '');
+      } else {
+        el.textContent = t[key];
+      }
+    }
+  });
+  // Sync selects
+  var selects = [document.getElementById('langSelect'), document.getElementById('langSelectMobile')];
+  selects.forEach(function(s){ if(s) s.value = lang; });
+}
+
+function t(key) {
+  return (LANGS[currentLang] || LANGS['en'])[key] || (LANGS['en'][key] || key);
+}
+
+/* ══════════════════════════════════════
+   TOAST NOTIFICATIONS
+══════════════════════════════════════ */
+function showToast(msg, type) {
+  type = type || 'info';
+  var icons = { success:'ph-check-circle', error:'ph-x-circle', info:'ph-info' };
+  var colors = { success:'var(--neon)', error:'var(--orange)', info:'var(--blue)' };
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = '<i class="ph-fill ' + (icons[type]||icons.info) + '" style="color:'+colors[type]+'" aria-hidden="true"></i><span>' + msg + '</span>';
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(function() {
+    el.classList.add('toast-out');
+    setTimeout(function(){ el.remove(); }, 350);
+  }, 3200);
+}
+
+/* ══════════════════════════════════════
+   READING PROGRESS BAR
+══════════════════════════════════════ */
+window.addEventListener('scroll', function() {
+  var doc = document.documentElement;
+  var scrolled = doc.scrollTop || document.body.scrollTop;
+  var total = doc.scrollHeight - doc.clientHeight;
+  var pct = total > 0 ? (scrolled / total * 100) : 0;
+  document.getElementById('readingBar').style.width = pct + '%';
+  document.getElementById('navbar').classList.toggle('scrolled', scrolled > 40);
+  document.getElementById('scrollTop').classList.toggle('show', scrolled > 400);
+});
+
+/* ══════════════════════════════════════
+   NAVBAR & MOBILE MENU
+══════════════════════════════════════ */
+var hamburger  = document.getElementById('hamburger');
+var mobileMenu = document.getElementById('mobileMenu');
+
+hamburger.addEventListener('click', function() {
+  var open = mobileMenu.classList.toggle('open');
+  hamburger.classList.toggle('open', open);
+  hamburger.setAttribute('aria-expanded', String(open));
+  document.body.style.overflow = open ? 'hidden' : '';
+});
+document.getElementById('mobileClose').addEventListener('click', function() {
+  mobileMenu.classList.remove('open'); hamburger.classList.remove('open'); document.body.style.overflow = '';
+});
+document.querySelectorAll('.mm-link').forEach(function(l) {
+  l.addEventListener('click', function() { mobileMenu.classList.remove('open'); hamburger.classList.remove('open'); document.body.style.overflow = ''; });
+});
+
+/* ══════════════════════════════════════
+   THEME TOGGLE BUTTONS
+══════════════════════════════════════ */
+document.getElementById('themeToggle').addEventListener('click', function() {
+  applyTheme(!isDark);
+  showToast(isDark ? '🌙 Dark mode on' : '☀️ Light mode on', 'info');
+});
+document.getElementById('themeToggleMobile').addEventListener('click', function() {
+  applyTheme(!isDark);
+});
+
+/* ══════════════════════════════════════
+   LANGUAGE SELECTORS
+══════════════════════════════════════ */
+function bindLangSelect(id) {
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('change', function() {
+    applyLang(this.value);
+    renderDashboard();
+    showToast('🌐 Language changed', 'info');
+  });
+}
+bindLangSelect('langSelect');
+bindLangSelect('langSelectMobile');
+
+/* ══════════════════════════════════════
+   FONT SIZE CONTROLS
+══════════════════════════════════════ */
+document.getElementById('fontDec').addEventListener('click', function() { applyFont(baseFontSize - 1); showToast('Font size decreased', 'info'); });
+document.getElementById('fontInc').addEventListener('click', function() { applyFont(baseFontSize + 1); showToast('Font size increased', 'info'); });
+
+/* ══════════════════════════════════════
+   SMOOTH SCROLL
+══════════════════════════════════════ */
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    var target = document.querySelector(a.getAttribute('href'));
+    if(target) { e.preventDefault(); target.scrollIntoView({ behavior:'smooth', block:'start' }); }
+  });
+});
+
+/* ══════════════════════════════════════
+   SCROLL-TO-TOP
+══════════════════════════════════════ */
+document.getElementById('scrollTop').addEventListener('click', function() { window.scrollTo({ top:0, behavior:'smooth' }); });
+
+/* ══════════════════════════════════════
+   REVEAL ANIMATION
+══════════════════════════════════════ */
+var ro = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) { if(e.isIntersecting) { e.target.classList.add('in'); ro.unobserve(e.target); } });
+}, { threshold:0.1, rootMargin:'0px 0px -30px 0px' });
+document.querySelectorAll('.reveal').forEach(function(el) { ro.observe(el); });
+
+/* ══════════════════════════════════════
+   HERO TICKER
+══════════════════════════════════════ */
+function renderTicker() {
+  var ticker = document.getElementById('heroTicker');
+  if(!ticker) return;
+  var sample = ideas.slice().sort(function(){ return Math.random()-.5; }).slice(0,4);
+  ticker.innerHTML = sample.map(function(idea, i) {
+    var cfg = CAT_CONFIG[idea.category] || CAT_CONFIG['Other'];
+    return '<div class="ticker-card" style="animation-delay:'+(i*.15)+'s">'+
+      '<div class="ticker-icon" style="background:'+cfg.bg+'">'+cfg.icon+'</div>'+
+      '<div style="flex:1;min-width:0"><div class="ticker-card-name">'+esc(idea.name)+'</div>'+
+      '<div class="ticker-card-cat">'+esc(idea.category)+' · by '+esc(idea.founder)+'</div></div>'+
+      '<span class="ticker-badge" style="background:'+cfg.bg+';color:'+cfg.color+'">M:'+idea.market+'</span></div>';
+  }).join('');
+}
+setInterval(renderTicker, 6000);
+
+/* ══════════════════════════════════════
+   HERO COUNTER ANIMATION
+══════════════════════════════════════ */
+function animateCounter(el, target) {
+  var start = null;
+  function step(ts) {
+    if(!start) start = ts;
+    var prog = Math.min((ts-start)/1400, 1);
+    el.textContent = Math.floor(prog * target);
+    if(prog < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function updateHeroCount() {
+  var el = document.getElementById('heroCount');
+  if(el) { el.textContent='0'; animateCounter(el, ideas.length); }
+}
+
+/* ══════════════════════════════════════
+   SLIDERS
+══════════════════════════════════════ */
+function syncSlider(inputId, valId) {
+  var input = document.getElementById(inputId);
+  var val   = document.getElementById(valId);
+  function update() {
+    val.textContent = input.value;
+    var pct = ((input.value-1)/9)*100;
+    input.style.background = 'linear-gradient(to right,var(--neon) '+pct+'%,var(--surface2) '+pct+'%)';
+  }
+  input.addEventListener('input', update);
+  update();
+}
+syncSlider('marketSlider','marketVal');
+syncSlider('diffSlider','diffVal');
+
+/* ══════════════════════════════════════
+   CHARACTER COUNTERS
+══════════════════════════════════════ */
+function bindCharCounter(inputId, counterId, max) {
+  var input = document.getElementById(inputId);
+  var ctr   = document.getElementById(counterId);
+  if(!input || !ctr) return;
+  input.addEventListener('input', function() {
+    var len = this.value.length;
+    ctr.textContent = len + ' / ' + max;
+    ctr.classList.toggle('warn', len > max * .85);
+  });
+}
+bindCharCounter('ideaName', 'nameCounter', 60);
+bindCharCounter('ideaDesc', 'descCounter', 300);
+
+/* ══════════════════════════════════════
+   CATEGORY PILLS
+══════════════════════════════════════ */
+document.querySelectorAll('.tag-pill').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.tag-pill').forEach(function(p){ p.classList.remove('selected'); });
+    pill.classList.add('selected');
+    selectedCat = pill.dataset.cat;
+    document.getElementById('eCat').classList.remove('show');
+  });
+});
+
+/* ══════════════════════════════════════
+   FORM VALIDATION HELPERS
+══════════════════════════════════════ */
+function showFgErr(inputId, errId, cond) {
+  var el  = document.getElementById(inputId);
+  var err = document.getElementById(errId);
+  if(el)  el.classList.toggle('err', cond);
+  if(err) err.classList.toggle('show', cond);
+  return !cond;
+}
+
+/* ══════════════════════════════════════
+   IDEA FORM SUBMIT
+══════════════════════════════════════ */
+document.getElementById('ideaForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var name    = document.getElementById('ideaName').value.trim();
+  var founder = document.getElementById('founderName').value.trim();
+  var desc    = document.getElementById('ideaDesc').value.trim();
+  var v1 = showFgErr('ideaName',    'eIdeaName', name.length < 2);
+  var v2 = showFgErr('founderName', 'eFounder',  founder.length < 2);
+  var v3 = showFgErr('ideaDesc',    'eDesc',     desc.length < 20);
+  document.getElementById('eCat').classList.toggle('show', !selectedCat);
+  if(!(v1 && v2 && v3 && selectedCat)) return;
+
+  var btn = document.getElementById('ideaSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ph-bold ph-spinner" style="animation:spin 1s linear infinite"></i> Launching…';
+
+  setTimeout(function() {
+    ideas.unshift({
+      id: Date.now(), name:name, founder:founder, desc:desc,
+      category:selectedCat,
+      market:     parseInt(document.getElementById('marketSlider').value),
+      difficulty: parseInt(document.getElementById('diffSlider').value),
+      audience:   document.getElementById('targetAudience').value.trim() || 'General',
+      likes:0, date: new Date().toISOString().split('T')[0]
+    });
+    saveIdeas();
+    renderDashboard();
+    renderDashStats();
+    renderTicker();
+    updateHeroCount();
+
+    document.getElementById('ideaForm').reset();
+    document.querySelectorAll('.tag-pill').forEach(function(p){ p.classList.remove('selected'); });
+    selectedCat = '';
+    syncSlider('marketSlider','marketVal');
+    syncSlider('diffSlider','diffVal');
+    document.getElementById('nameCounter').textContent = '0 / 60';
+    document.getElementById('descCounter').textContent = '0 / 300';
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ph-bold ph-rocket-launch"></i> <span data-i18n="btn_submit">'+t('btn_submit')+'</span>';
+    showToast(t('toast_submitted'), 'success');
+    setTimeout(function(){ document.getElementById('dashboard').scrollIntoView({ behavior:'smooth' }); }, 700);
+  }, 1200);
+});
+
+/* ══════════════════════════════════════
+   DASHBOARD — STATS ROW
+══════════════════════════════════════ */
+function renderDashStats() {
+  var filtered = getFiltered();
+  var avgMarket = filtered.length ? (filtered.reduce(function(a,b){ return a+b.market; },0)/filtered.length).toFixed(1) : 0;
+  var topCat = '—';
+  if(filtered.length) {
+    var catCount = {};
+    filtered.forEach(function(i){ catCount[i.category] = (catCount[i.category]||0)+1; });
+    topCat = Object.keys(catCount).reduce(function(a,b){ return catCount[a]>catCount[b]?a:b; });
+  }
+  var totalLikes = filtered.reduce(function(a,b){ return a+b.likes; },0);
+  document.getElementById('dashStatsRow').innerHTML =
+    '<div class="dash-stat-pill"><strong>'+filtered.length+'</strong> ideas shown</div>'+
+    '<div class="dash-stat-pill">Avg market: <strong>'+avgMarket+'/10</strong></div>'+
+    '<div class="dash-stat-pill">Top category: <strong>'+topCat+'</strong></div>'+
+    '<div class="dash-stat-pill">Total likes: <strong>'+totalLikes+'</strong></div>';
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD — FILTER & SORT
+══════════════════════════════════════ */
+function getFiltered() {
+  var q = searchQuery.toLowerCase();
+  var result = ideas.filter(function(idea) {
+    var matchCat    = activeFilter === 'All' || idea.category === activeFilter;
+    var matchSearch = !q || idea.name.toLowerCase().includes(q) || idea.desc.toLowerCase().includes(q) || idea.category.toLowerCase().includes(q) || idea.founder.toLowerCase().includes(q);
+    return matchCat && matchSearch;
+  });
+  result.sort(function(a,b) {
+    if(sortBy === 'oldest')     return new Date(a.date) - new Date(b.date);
+    if(sortBy === 'market')     return b.market - a.market;
+    if(sortBy === 'difficulty') return b.difficulty - a.difficulty;
+    if(sortBy === 'likes')      return b.likes - a.likes;
+    return new Date(b.date) - new Date(a.date); // newest
+  });
+  return result;
+}
+
+function diffLabel(d) {
+  if(d <= 3) return { label:'Easy',   color:'#00f5a0' };
+  if(d <= 6) return { label:'Medium', color:'#fbbf24' };
+  return             { label:'Hard',  color:'#ff6b35' };
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD — RENDER
+══════════════════════════════════════ */
+function renderDashboard() {
+  var grid = document.getElementById('ideasGrid');
+  var filtered = getFiltered();
+  if(!filtered.length) {
+    grid.innerHTML = '<div class="no-ideas"><i class="ph-bold ph-magnifying-glass"></i>No ideas match your filters. Be the first to submit!</div>';
+    renderDashStats();
+    return;
+  }
+  grid.innerHTML = filtered.map(function(idea, idx) {
+    var cfg  = CAT_CONFIG[idea.category] || CAT_CONFIG['Other'];
+    var diff = diffLabel(idea.difficulty);
+    var mPct = (idea.market/10)*100;
+    var dPct = (idea.difficulty/10)*100;
+    return '<article class="idea-card" style="animation-delay:'+(idx%6*.06)+'s" data-id="'+idea.id+'">' +
+      '<style>.idea-card[data-id="'+idea.id+'"]::before{background:'+cfg.color+'}</style>'+
+      '<div class="idea-card-head">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+      '<div class="idea-card-icon" style="background:'+cfg.bg+'">'+cfg.icon+'</div>'+
+      '<span class="idea-card-cat" style="background:'+cfg.bg+';color:'+cfg.color+'">'+esc(idea.category)+'</span>'+
+      '</div><span style="font-size:.72rem;color:var(--muted)">'+esc(idea.date)+'</span></div>'+
+      '<div><div class="idea-card-name">'+esc(idea.name)+'</div>'+
+      '<div class="idea-card-founder">by '+esc(idea.founder)+(idea.audience?' · '+esc(idea.audience):'')+'</div></div>'+
+      '<div class="idea-card-desc">'+esc(idea.desc)+'</div>'+
+      '<div class="idea-card-meters">'+
+      '<div class="meter-row"><span class="meter-label">Market</span><div class="meter-bar"><div class="meter-fill" style="width:'+mPct+'%;background:'+cfg.color+'"></div></div><span class="meter-val" style="color:'+cfg.color+'">'+idea.market+'/10</span></div>'+
+      '<div class="meter-row"><span class="meter-label">Difficulty</span><div class="meter-bar"><div class="meter-fill" style="width:'+dPct+'%;background:'+diff.color+'"></div></div><span class="meter-val" style="color:'+diff.color+'">'+diff.label+'</span></div>'+
+      '</div>'+
+      '<div class="idea-card-footer"><span class="idea-card-date">'+esc(idea.date)+'</span>'+
+      '<div class="idea-actions">'+
+      '<button class="idea-detail-btn" data-id="'+idea.id+'" aria-label="View details"><i class="ph-bold ph-arrow-square-out"></i></button>'+
+      '<button class="idea-like-btn'+(idea._liked?' liked':'')+'" data-id="'+idea.id+'" aria-label="Like">'+
+      '<i class="ph-'+(idea._liked?'fill':'bold')+' ph-heart"></i><span>'+idea.likes+'</span></button>'+
+      '</div></div></article>';
+  }).join('');
+
+  // Like buttons
+  grid.querySelectorAll('.idea-like-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id   = parseInt(btn.dataset.id);
+      var idea = ideas.find(function(i){ return i.id===id; });
+      if(!idea) return;
+      idea._liked = !idea._liked;
+      idea.likes += idea._liked ? 1 : -1;
+      saveIdeas();
+      renderDashboard();
+      renderDashStats();
+      showToast(idea._liked ? t('toast_liked') : t('toast_unliked'), idea._liked?'success':'info');
+    });
+  });
+
+  // Detail buttons
+  grid.querySelectorAll('.idea-detail-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id   = parseInt(btn.dataset.id);
+      var idea = ideas.find(function(i){ return i.id===id; });
+      if(idea) openModal(idea);
+    });
+  });
+
+  renderDashStats();
+}
+
+/* ══════════════════════════════════════
+   IDEA DETAIL MODAL
+══════════════════════════════════════ */
+function openModal(idea) {
+  var cfg  = CAT_CONFIG[idea.category] || CAT_CONFIG['Other'];
+  var diff = diffLabel(idea.difficulty);
+  document.getElementById('modalContent').innerHTML =
+    '<span class="modal-cat" style="background:'+cfg.bg+';color:'+cfg.color+'">'+cfg.icon+' '+esc(idea.category)+'</span>'+
+    '<div class="modal-title" id="modalTitle">'+esc(idea.name)+'</div>'+
+    '<div class="modal-founder">by '+esc(idea.founder)+' · '+esc(idea.date)+'</div>'+
+    '<div class="modal-desc">'+esc(idea.desc)+'</div>'+
+    '<div class="modal-metrics">'+
+    '<div class="modal-metric"><div class="modal-metric-val" style="color:'+cfg.color+'">'+idea.market+'<small>/10</small></div><div class="modal-metric-label">Market Potential</div></div>'+
+    '<div class="modal-metric"><div class="modal-metric-val" style="color:'+diff.color+'">'+idea.difficulty+'<small>/10</small></div><div class="modal-metric-label">Build Difficulty ('+diff.label+')</div></div>'+
+    '</div>'+
+    '<div class="modal-tags">'+
+    '<span class="modal-tag">🎯 '+esc(idea.audience||'General')+'</span>'+
+    '<span class="modal-tag">❤️ '+idea.likes+' likes</span>'+
+    '</div>';
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', function(e) { if(e.target === this) closeModal(); });
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD CONTROLS
+══════════════════════════════════════ */
+document.querySelectorAll('.dash-filter').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.dash-filter').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+    btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
+    activeFilter = btn.dataset.filter;
+    renderDashboard();
+  });
+});
+document.getElementById('dashSearch').addEventListener('input', function(e) {
+  searchQuery = e.target.value;
+  renderDashboard();
+});
+document.getElementById('dashSort').addEventListener('change', function() {
+  sortBy = this.value;
+  renderDashboard();
+});
+
+/* ══════════════════════════════════════
+   EXPORT
+══════════════════════════════════════ */
+function downloadFile(content, filename, mime) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type:mime }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+document.getElementById('exportJSON').addEventListener('click', function() {
+  var clean = getFiltered().map(function(i){ return { id:i.id, name:i.name, founder:i.founder, category:i.category, market:i.market, difficulty:i.difficulty, likes:i.likes, date:i.date, description:i.desc, audience:i.audience }; });
+  downloadFile(JSON.stringify(clean, null, 2), 'ideavault_ideas.json', 'application/json');
+  showToast(t('toast_exported'), 'success');
+});
+document.getElementById('exportCSV').addEventListener('click', function() {
+  var rows = [['ID','Name','Founder','Category','Market','Difficulty','Likes','Date','Description','Audience']];
+  getFiltered().forEach(function(i){ rows.push([i.id,'"'+i.name+'"','"'+i.founder+'"',i.category,i.market,i.difficulty,i.likes,i.date,'"'+i.desc.replace(/"/g,'""')+'"','"'+(i.audience||'')+'"']); });
+  downloadFile(rows.map(function(r){ return r.join(','); }).join('\n'), 'ideavault_ideas.csv', 'text/csv');
+  showToast(t('toast_exported'), 'success');
+});
+
+/* ══════════════════════════════════════
+   FAQ ACCORDION
+══════════════════════════════════════ */
+document.querySelectorAll('.faq-q').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var item   = btn.closest('.faq-item');
+    var isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(function(i){ i.classList.remove('open'); i.querySelector('.faq-q').setAttribute('aria-expanded','false'); });
+    if(!isOpen) { item.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+  });
+});
+
+/* ══════════════════════════════════════
+   CONTACT FORM
+══════════════════════════════════════ */
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var name  = document.getElementById('cName').value.trim();
+  var email = document.getElementById('cEmail').value.trim();
+  var msg   = document.getElementById('cMsg').value.trim();
+  var v1 = showFgErr('cName',  'eCName',  name.length < 2);
+  var v2 = showFgErr('cEmail', 'eCEmail', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+  var v3 = showFgErr('cMsg',   'eCMsg',   msg.length < 5);
+  if(!(v1&&v2&&v3)) return;
+  var btn = e.target.querySelector('.contact-submit');
+  btn.disabled = true;
+  setTimeout(function() {
+    btn.disabled = false;
+    e.target.reset();
+    showToast(t('toast_contact'), 'success');
+  }, 1200);
+});
+
+/* ══════════════════════════════════════
+   KEYBOARD SHORTCUTS
+══════════════════════════════════════ */
+document.addEventListener('keydown', function(e) {
+  if((e.ctrlKey || e.metaKey) && e.key === '/') {
+    e.preventDefault();
+    document.getElementById('submit').scrollIntoView({ behavior:'smooth' });
+    setTimeout(function(){ document.getElementById('ideaName').focus(); }, 600);
+  }
+  if((e.ctrlKey || e.metaKey) && e.key === 'd') {
+    e.preventDefault();
+    document.getElementById('dashboard').scrollIntoView({ behavior:'smooth' });
+  }
+  if(e.key === 'Escape') closeModal();
+});
+
+/* ══════════════════════════════════════
+   SPINNER KEYFRAME
+══════════════════════════════════════ */
+var s = document.createElement('style');
+s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(s);
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+loadIdeas();
+loadPrefs();
+renderDashboard();
+renderTicker();
+updateHeroCount();
+</script>
+</body>
+</html>
